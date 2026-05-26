@@ -149,12 +149,9 @@
     </div>
     <div class="login-tag">PANEL DE ADMINISTRACIÓN</div>
     <div class="field">
-      <label>Email</label>
-      <input type="email" id="l-email" placeholder="admin@ejemplo.com" autocomplete="email"/>
-    </div>
-    <div class="field">
-      <label>Contraseña</label>
-      <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password"/>
+      <label>Contraseña de administrador</label>
+      <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') doLogin()"/>
     </div>
     <button class="btn-primary" id="l-btn" onclick="doLogin()">Entrar al panel</button>
     <div class="login-error" id="login-error"></div>
@@ -300,41 +297,35 @@ function toast(msg, ok=true){
 }
 
 // ── LOGIN ──
+// Email fijo del admin — solo necesita la contraseña
+const ADMIN_EMAIL = 'adminislapoint@gmail.com';
+
 async function doLogin(){
-  const email = document.getElementById('l-email').value.trim();
-  const pass  = document.getElementById('l-pass').value;
-  const btn   = document.getElementById('l-btn');
-  const err   = document.getElementById('login-error');
+  const pass = document.getElementById('l-pass').value;
+  const btn  = document.getElementById('l-btn');
+  const err  = document.getElementById('login-error');
   btn.disabled=true; btn.textContent='Entrando…'; err.style.display='none';
   try{
-    // 1. Autenticar en Supabase Auth
+    if(!pass) throw new Error('Introduce la contraseña');
+
+    // Autenticar con email fijo del admin
     const res = await fetch(`${URL_SB}/auth/v1/token?grant_type=password`,{
       method:'POST',
       headers:{'apikey':KEY_SB,'Content-Type':'application/json'},
-      body:JSON.stringify({email,password:pass})
+      body:JSON.stringify({email:ADMIN_EMAIL, password:pass})
     });
     const data = await res.json();
-    if(!res.ok) throw new Error('Email o contraseña incorrectos');
+    if(!res.ok) throw new Error('Contraseña incorrecta');
 
-    // 2. Leer perfil de Supabase (rol + caducidad)
-    const pRes = await fetch(`${URL_SB}/rest/v1/perfiles?id=eq.${data.user.id}&select=rol,caduca_en`,{
+    // Verificar que es admin
+    const pRes = await fetch(`${URL_SB}/rest/v1/perfiles?id=eq.${data.user.id}&select=rol`,{
       headers: hdrs(data.access_token)
     });
     const perfiles = await pRes.json();
-    if(!perfiles.length) throw new Error('No tienes permisos de acceso');
-
-    const perfil = perfiles[0];
-    if(perfil.rol !== 'admin') throw new Error('No tienes permisos de administrador');
-
-    // 3. Comprobar caducidad (NULL = nunca caduca = admin)
-    if(perfil.caduca_en !== null){
-      const caduca = new Date(perfil.caduca_en);
-      const ahora  = new Date();
-      if(ahora > caduca) throw new Error(`Acceso caducado el ${caduca.toLocaleDateString('es-ES')}`);
-    }
+    if(!perfiles.length || perfiles[0].rol !== 'admin') throw new Error('No tienes permisos de administrador');
 
     SESSION = data;
-    showPanel(email);
+    showPanel(ADMIN_EMAIL);
   }catch(e){
     err.textContent = e.message;
     err.style.display = 'block';
