@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IslaPoint Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --b9:#0a1628;--b8:#0d1f3c;--b7:#102a52;--b6:#1a3a6e;
+      --b5:#1e4fa3;--b4:#2563eb;--b3:#3b82f6;--b2:#93c5fd;
+      --b0:#eff6ff;--ac:#06b6d4;--white:#fff;
+      --g1:#f1f5f9;--g2:#e2e8f0;--g4:#94a3b8;--g6:#475569;--g9:#0f172a;
+      --red:#dc2626;--green:#16a34a;
+      --sh:0 4px 24px rgba(10,22,40,.12);--r:12px;--rs:8px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--g1);color:var(--g9)}
+
+    /* LOGIN */
+    #login-screen{
+      display:flex;align-items:center;justify-content:center;
+      min-height:100vh;background:linear-gradient(135deg,var(--b9),var(--b7));
+    }
+    .login-box{
+      background:#fff;border-radius:20px;padding:40px;width:100%;max-width:400px;
+      box-shadow:0 20px 60px rgba(0,0,0,.3);
+    }
+    .login-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:28px}
+    .login-logo-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--b4),var(--ac));display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,99,235,.4)}
+    .login-logo-text{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--b9)}
+    .login-logo-text span{color:var(--ac)}
+    .login-tag{text-align:center;font-size:13px;color:var(--g4);margin-bottom:28px;letter-spacing:.5px}
+    .field{margin-bottom:16px}
+    .field label{display:block;font-size:12px;font-weight:600;color:var(--g6);margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px}
+    .field input{width:100%;padding:11px 14px;border:1.5px solid var(--g2);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:.2s;background:#fff}
+    .field input:focus{border-color:var(--b4);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+    .btn-primary{width:100%;padding:12px;background:linear-gradient(135deg,var(--b4),var(--b5));color:#fff;border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;margin-top:4px}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(37,99,235,.4)}
+    .btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    #login-error{color:var(--red);font-size:13px;text-align:center;margin-top:12px;display:none}
+
+    /* ADMIN PANEL */
+    #admin-panel{display:none;min-height:100vh;flex-direction:column}
+
+    /* HEADER */
+    .admin-header{
+      background:linear-gradient(135deg,var(--b9),var(--b8) 60%,var(--b7));
+      padding:0 28px;height:64px;display:flex;align-items:center;
+      justify-content:space-between;box-shadow:0 4px 24px rgba(0,0,0,.3);
+      position:sticky;top:0;z-index:100;
+    }
+    .ah-logo{display:flex;align-items:center;gap:10px}
+    .ah-logo-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--b4),var(--ac));display:flex;align-items:center;justify-content:center}
+    .ah-logo-text{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff}
+    .ah-logo-text span{color:var(--ac)}
+    .ah-badge{background:rgba(6,182,212,.2);border:1px solid rgba(6,182,212,.4);color:var(--ac);font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;letter-spacing:.5px}
+    .ah-right{display:flex;align-items:center;gap:12px}
+    .ah-user{color:var(--b2);font-size:13px}
+    .btn-logout{padding:7px 16px;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.3);border-radius:var(--rs);color:#fca5a5;font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
+    .btn-logout:hover{background:rgba(220,38,38,.25)}
+
+    /* NAV TABS */
+    .admin-nav{background:#fff;border-bottom:1px solid var(--g2);padding:0 28px;display:flex;gap:4px}
+    .nav-tab{padding:14px 18px;font-size:13px;font-weight:600;color:var(--g4);cursor:pointer;border-bottom:2px solid transparent;transition:.2s;white-space:nowrap}
+    .nav-tab:hover{color:var(--b4)}
+    .nav-tab.active{color:var(--b4);border-bottom-color:var(--b4)}
+
+    /* CONTENT */
+    .admin-content{flex:1;padding:28px;max-width:1200px;margin:0 auto;width:100%}
+
+    /* SECTION */
+    .section{display:none}
+    .section.active{display:block}
+    .section-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--b9);margin-bottom:6px}
+    .section-sub{font-size:13px;color:var(--g4);margin-bottom:24px}
+
+    /* CARDS STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+    .stat-card{background:#fff;border-radius:var(--r);padding:20px;box-shadow:var(--sh);border-left:4px solid var(--b4)}
+    .stat-card.green{border-left-color:var(--green)}
+    .stat-card.cyan{border-left-color:var(--ac)}
+    .stat-num{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--b9)}
+    .stat-label{font-size:12px;color:var(--g4);margin-top:4px;font-weight:500}
+
+    /* TABLE */
+    .table-wrap{background:#fff;border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+    .table-head{padding:16px 20px;border-bottom:1px solid var(--g2);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .table-search{padding:8px 14px;border:1.5px solid var(--g2);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;width:240px;transition:.2s}
+    .table-search:focus{border-color:var(--b4)}
+    .btn-add{padding:8px 18px;background:linear-gradient(135deg,var(--b4),var(--b5));color:#fff;border:none;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:6px}
+    .btn-add:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.3)}
+    table{width:100%;border-collapse:collapse}
+    th{padding:11px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--g4);text-transform:uppercase;letter-spacing:.8px;background:var(--g1);border-bottom:1px solid var(--g2)}
+    td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--g2);vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#fafbff}
+    .td-name{font-weight:600;color:var(--b9)}
+    .badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px}
+    .b-restauracion{background:#fef3c7;color:#92400e}
+    .b-comercio{background:#dcfce7;color:#166534}
+    .b-servicios{background:#ede9fe;color:#5b21b6}
+    .b-salud{background:#fee2e2;color:#991b1b}
+    .b-cultura{background:#fce7f3;color:#9d174d}
+    .b-educacion{background:#dbeafe;color:#1e40af}
+    .b-ocio{background:#d1fae5;color:#065f46}
+    .b-deporte{background:#ffedd5;color:#9a3412}
+    .b-otro{background:#f1f5f9;color:#475569}
+    .b-admin{background:#dbeafe;color:#1e40af}
+    .b-viewer{background:#f1f5f9;color:#475569}
+    .td-actions{display:flex;gap:6px}
+    .btn-edit{padding:5px 12px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:6px;color:var(--b4);font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
+    .btn-edit:hover{background:rgba(37,99,235,.15)}
+    .btn-del{padding:5px 12px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.2);border-radius:6px;color:var(--red);font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
+    .btn-del:hover{background:rgba(220,38,38,.15)}
+    .empty-row td{text-align:center;padding:40px;color:var(--g4);font-size:13px}
+
+    /* MODAL */
+    .modal-bg{display:none;position:fixed;inset:0;background:rgba(10,22,40,.5);z-index:1000;align-items:center;justify-content:center;padding:20px}
+    .modal-bg.open{display:flex}
+    .modal{background:#fff;border-radius:20px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.3)}
+    .modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--g2);display:flex;align-items:center;justify-content:space-between}
+    .modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--b9)}
+    .modal-close{width:30px;height:30px;border-radius:8px;border:none;background:var(--g1);color:var(--g6);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .modal-close:hover{background:var(--g2)}
+    .modal-body{padding:20px 24px}
+    .modal-footer{padding:16px 24px;border-top:1px solid var(--g2);display:flex;gap:10px;justify-content:flex-end}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .form-grid .full{grid-column:1/-1}
+    .btn-cancel{padding:10px 20px;background:var(--g1);border:1px solid var(--g2);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--g6);cursor:pointer;transition:.2s}
+    .btn-cancel:hover{background:var(--g2)}
+    .btn-save{padding:10px 24px;background:linear-gradient(135deg,var(--b4),var(--b5));color:#fff;border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
+    .btn-save:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.3)}
+    .btn-save:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+    /* TOAST */
+    #toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--rs);font-size:13px;font-weight:600;z-index:9999;display:none;box-shadow:var(--sh);max-width:320px}
+    #toast.ok{background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
+    #toast.err{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+
+    .ldr{text-align:center;padding:40px;color:var(--g4);font-size:13px}
+    .spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--g2);border-top-color:var(--b4);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* USUARIOS */
+    .user-invite{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:24px;margin-bottom:20px}
+    .user-invite-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px;color:var(--b9)}
+    .invite-row{display:flex;gap:10px;flex-wrap:wrap}
+    .invite-row input{flex:1;min-width:200px;padding:10px 14px;border:1.5px solid var(--g2);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:.2s}
+    .invite-row input:focus{border-color:var(--b4)}
+    .invite-row select{padding:10px 14px;border:1.5px solid var(--g2);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;background:#fff;cursor:pointer}
+    .btn-invite{padding:10px 20px;background:linear-gradient(135deg,var(--b4),var(--b5));color:#fff;border:none;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M17 17l4 4"/><path d="M11 8v6M8 11h6"/></svg>
+      </div>
+      <span class="login-logo-text">Isla<span>Point</span></span>
+    </div>
+    <div class="login-tag">PANEL DE ADMINISTRACIÓN</div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="l-email" placeholder="admin@ejemplo.com" autocomplete="email"/>
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <button class="btn-primary" id="l-btn" onclick="doLogin()">Entrar al panel</button>
+    <div id="login-error">Email o contraseña incorrectos</div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+  <div class="admin-header">
+    <div class="ah-logo">
+      <div class="ah-logo-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M17 17l4 4"/><path d="M11 8v6M8 11h6"/></svg>
+      </div>
+      <span class="ah-logo-text">Isla<span>Point</span></span>
+    </div>
+    <span class="ah-badge">ADMIN</span>
+    <div class="ah-right">
+      <span class="ah-user" id="ah-email"></span>
+      <button class="btn-logout" onclick="doLogout()">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="admin-nav">
+    <div class="nav-tab active" onclick="showTab('establecimientos')">📍 Establecimientos</div>
+    <div class="nav-tab" onclick="showTab('usuarios')">👥 Usuarios</div>
+  </div>
+
+  <div class="admin-content">
+
+    <!-- ESTABLECIMIENTOS -->
+    <div class="section active" id="tab-establecimientos">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num" id="st-total">—</div><div class="stat-label">Total establecimientos</div></div>
+        <div class="stat-card green"><div class="stat-num" id="st-activos">—</div><div class="stat-label">Activos</div></div>
+        <div class="stat-card cyan"><div class="stat-num" id="st-zonas">—</div><div class="stat-label">Zonas</div></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head">
+          <input class="table-search" id="est-search" placeholder="Buscar establecimiento…" oninput="filterEst()"/>
+          <button class="btn-add" onclick="openModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Añadir establecimiento
+          </button>
+        </div>
+        <div id="est-table-wrap"><div class="ldr"><span class="spinner"></span>Cargando…</div></div>
+      </div>
+    </div>
+
+    <!-- USUARIOS -->
+    <div class="section" id="tab-usuarios">
+      <div class="section-title">Gestión de usuarios</div>
+      <div class="section-sub">Crea nuevos administradores o gestiona los existentes</div>
+      <div class="user-invite">
+        <div class="user-invite-title">Crear nuevo usuario</div>
+        <div class="invite-row">
+          <input type="email" id="u-email" placeholder="email@ejemplo.com"/>
+          <input type="password" id="u-pass" placeholder="Contraseña"/>
+          <select id="u-rol">
+            <option value="admin">Admin</option>
+            <option value="viewer">Viewer</option>
+          </select>
+          <button class="btn-invite" onclick="createUser()">Crear usuario</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div id="usr-table-wrap"><div class="ldr"><span class="spinner"></span>Cargando…</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL ESTABLECIMIENTO -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Nuevo establecimiento</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field full">
+          <label>Nombre *</label>
+          <input type="text" id="f-nombre" placeholder="Nombre del establecimiento"/>
+        </div>
+        <div class="field">
+          <label>Actividad</label>
+          <input type="text" id="f-actividad" placeholder="Ej: Comercio, Salud…"/>
+        </div>
+        <div class="field">
+          <label>Zona (Fachada)</label>
+          <input type="text" id="f-fachada" placeholder="Ej: Centro, Bazán…"/>
+        </div>
+        <div class="field">
+          <label>Calle</label>
+          <input type="text" id="f-calle" placeholder="Nombre de la calle"/>
+        </div>
+        <div class="field">
+          <label>Número</label>
+          <input type="text" id="f-numero" placeholder="Nº"/>
+        </div>
+        <div class="field full">
+          <label>Coordenadas</label>
+          <input type="text" id="f-coords" placeholder="36.4759, -6.1983"/>
+        </div>
+        <div class="field full">
+          <label>Foto URL</label>
+          <input type="text" id="f-foto" placeholder="https://…"/>
+        </div>
+        <div class="field">
+          <label>Estado</label>
+          <input type="text" id="f-estado" placeholder="Ej: Abierto, Cerrado…"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" id="btn-save" onclick="saveEstablecimiento()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const URL_SB  = 'https://qqsmojwgkgcemhvjcwgx.supabase.co';
+const KEY_SB  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxc21vandna2djZW1odmpjd2d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2OTgyODMsImV4cCI6MjA5NTI3NDI4M30.lGrIWt3w8CRtWCkRPFCDjgbP4GhS2m-1X6l26IKqbA8';
+const TABLE   = 'IslaPoint';
+
+let SESSION   = null;
+let allEst    = [];
+let editingId = null;
+
+// ── Headers con auth ──
+function hdrs(token){
+  return {
+    'apikey': KEY_SB,
+    'Authorization': 'Bearer '+(token||KEY_SB),
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+  };
+}
+
+// ── Toast ──
+function toast(msg, ok=true){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=ok?'ok':'err'; t.style.display='block';
+  setTimeout(()=>t.style.display='none', 3500);
+}
+
+// ── LOGIN ──
+async function doLogin(){
+  const email=document.getElementById('l-email').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  const btn=document.getElementById('l-btn');
+  const err=document.getElementById('login-error');
+  btn.disabled=true; btn.textContent='Entrando…'; err.style.display='none';
+  try{
+    const res = await fetch(`${URL_SB}/auth/v1/token?grant_type=password`,{
+      method:'POST',
+      headers:{'apikey':KEY_SB,'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:pass})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error_description||data.msg||'Error');
+    SESSION = data;
+    // Verificar rol admin
+    const rRes = await fetch(`${URL_SB}/rest/v1/perfiles?id=eq.${data.user.id}&select=rol`,{
+      headers: hdrs(data.access_token)
+    });
+    const rData = await rRes.json();
+    if(!rData.length || rData[0].rol !== 'admin') throw new Error('No tienes permisos de administrador');
+    showPanel(data.user.email);
+  }catch(e){
+    err.textContent=e.message; err.style.display='block';
+  }finally{
+    btn.disabled=false; btn.textContent='Entrar al panel';
+  }
+}
+
+document.getElementById('l-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+
+function showPanel(email){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('admin-panel').style.display='flex';
+  document.getElementById('ah-email').textContent=email;
+  loadEstablecimientos();
+  loadUsuarios();
+}
+
+async function doLogout(){
+  await fetch(`${URL_SB}/auth/v1/logout`,{method:'POST',headers:hdrs(SESSION?.access_token)});
+  SESSION=null; allEst=[];
+  document.getElementById('admin-panel').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+}
+
+// ── TABS ──
+function showTab(name){
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// ── ESTABLECIMIENTOS ──
+async function loadEstablecimientos(){
+  try{
+    const res = await fetch(`${URL_SB}/rest/v1/${TABLE}?select=*&order=Nombre.asc`,{headers:hdrs(SESSION?.access_token)});
+    allEst = await res.json();
+    renderEstStats();
+    renderEstTable(allEst);
+  }catch(e){ toast('Error cargando establecimientos',false); }
+}
+
+function actCls(a){
+  const m={'restauracion':'restauracion','restauración':'restauracion','comercio':'comercio','servicios':'servicios','salud':'salud','cultura':'cultura','educacion':'educacion','educación':'educacion','ocio':'ocio','deporte':'deporte'};
+  return 'b-'+(m[(a||'').toLowerCase()]||'otro');
+}
+
+function renderEstStats(){
+  document.getElementById('st-total').textContent = allEst.length;
+  document.getElementById('st-activos').textContent = allEst.filter(e=>(e.Estado||'').toLowerCase().includes('abiert')).length||allEst.length;
+  document.getElementById('st-zonas').textContent = new Set(allEst.map(e=>e.Fachada).filter(Boolean)).size;
+}
+
+function renderEstTable(data){
+  const w = document.getElementById('est-table-wrap');
+  if(!data.length){ w.innerHTML='<table><tr class="empty-row"><td colspan="5">No hay establecimientos</td></tr></table>'; return; }
+  w.innerHTML=`<table>
+    <thead><tr>
+      <th>Nombre</th><th>Actividad</th><th>Zona</th><th>Dirección</th><th>Acciones</th>
+    </tr></thead>
+    <tbody>
+    ${data.map(it=>`<tr>
+      <td class="td-name">${it.Nombre||'—'}</td>
+      <td><span class="badge ${actCls(it.Actividad)}">${it.Actividad||'—'}</span></td>
+      <td>${it.Fachada||'—'}</td>
+      <td style="color:var(--g6);font-size:12px">${[it.Calle,it['Número']].filter(Boolean).join(' ')||'—'}</td>
+      <td><div class="td-actions">
+        <button class="btn-edit" onclick="openModal(${it.id})">Editar</button>
+        <button class="btn-del" onclick="delEst(${it.id},'${(it.Nombre||'').replace(/'/g,"\\'")}')">Borrar</button>
+      </div></td>
+    </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function filterEst(){
+  const q=document.getElementById('est-search').value.toLowerCase();
+  renderEstTable(allEst.filter(e=>(e.Nombre||'').toLowerCase().includes(q)||(e.Fachada||'').toLowerCase().includes(q)||(e.Actividad||'').toLowerCase().includes(q)));
+}
+
+// ── MODAL ──
+function openModal(id=null){
+  editingId=id;
+  document.getElementById('modal-title').textContent = id ? 'Editar establecimiento' : 'Nuevo establecimiento';
+  if(id){
+    const it=allEst.find(e=>e.id===id);
+    if(it){
+      document.getElementById('f-nombre').value   = it.Nombre||'';
+      document.getElementById('f-actividad').value= it.Actividad||'';
+      document.getElementById('f-fachada').value  = it.Fachada||'';
+      document.getElementById('f-calle').value    = it.Calle||'';
+      document.getElementById('f-numero').value   = it['Número']||'';
+      document.getElementById('f-coords').value   = it.Coordenadas||'';
+      document.getElementById('f-foto').value     = it['Foto-URL']||'';
+      document.getElementById('f-estado').value   = it.Estado||'';
+    }
+  } else {
+    ['f-nombre','f-actividad','f-fachada','f-calle','f-numero','f-coords','f-foto','f-estado'].forEach(id=>document.getElementById(id).value='');
+  }
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function closeModal(){ document.getElementById('modal-bg').classList.remove('open'); editingId=null; }
+
+async function saveEstablecimiento(){
+  const nombre=document.getElementById('f-nombre').value.trim();
+  if(!nombre){ toast('El nombre es obligatorio',false); return; }
+  const btn=document.getElementById('btn-save');
+  btn.disabled=true; btn.textContent='Guardando…';
+  const body={
+    "Nombre":    nombre,
+    "Actividad": document.getElementById('f-actividad').value.trim()||null,
+    "Fachada":   document.getElementById('f-fachada').value.trim()||null,
+    "Calle":     document.getElementById('f-calle').value.trim()||null,
+    "Número":    document.getElementById('f-numero').value.trim()||null,
+    "Coordenadas":document.getElementById('f-coords').value.trim()||null,
+    "Foto-URL":  document.getElementById('f-foto').value.trim()||null,
+    "Estado":    document.getElementById('f-estado').value.trim()||null,
+  };
+  try{
+    let res;
+    if(editingId){
+      res = await fetch(`${URL_SB}/rest/v1/${TABLE}?id=eq.${editingId}`,{
+        method:'PATCH', headers:hdrs(SESSION?.access_token), body:JSON.stringify(body)
+      });
+    } else {
+      res = await fetch(`${URL_SB}/rest/v1/${TABLE}`,{
+        method:'POST', headers:hdrs(SESSION?.access_token), body:JSON.stringify(body)
+      });
+    }
+    if(!res.ok){ const e=await res.text(); throw new Error(e); }
+    toast(editingId ? 'Establecimiento actualizado ✓' : 'Establecimiento creado ✓');
+    closeModal();
+    loadEstablecimientos();
+  }catch(e){ toast('Error: '+e.message, false); }
+  finally{ btn.disabled=false; btn.textContent='Guardar'; }
+}
+
+async function delEst(id, nombre){
+  if(!confirm(`¿Borrar "${nombre}"? Esta acción no se puede deshacer.`)) return;
+  try{
+    const res = await fetch(`${URL_SB}/rest/v1/${TABLE}?id=eq.${id}`,{
+      method:'DELETE', headers:hdrs(SESSION?.access_token)
+    });
+    if(!res.ok) throw new Error(await res.text());
+    toast('Establecimiento eliminado');
+    loadEstablecimientos();
+  }catch(e){ toast('Error: '+e.message, false); }
+}
+
+// ── USUARIOS ──
+async function loadUsuarios(){
+  try{
+    const res = await fetch(`${URL_SB}/rest/v1/perfiles?select=id,rol`,{headers:hdrs(SESSION?.access_token)});
+    const perfiles = await res.json();
+    renderUsuarios(perfiles);
+  }catch(e){ document.getElementById('usr-table-wrap').innerHTML='<div class="ldr">Error cargando usuarios</div>'; }
+}
+
+function renderUsuarios(data){
+  const w=document.getElementById('usr-table-wrap');
+  if(!data.length){ w.innerHTML='<div class="ldr">No hay usuarios</div>'; return; }
+  w.innerHTML=`<table>
+    <thead><tr><th>UUID</th><th>Rol</th><th>Acciones</th></tr></thead>
+    <tbody>
+    ${data.map(u=>`<tr>
+      <td style="font-size:12px;color:var(--g4);font-family:monospace">${u.id}</td>
+      <td><span class="badge b-${u.rol}">${u.rol}</span></td>
+      <td><div class="td-actions">
+        <button class="btn-edit" onclick="toggleRol('${u.id}','${u.rol}')">${u.rol==='admin'?'→ Viewer':'→ Admin'}</button>
+        <button class="btn-del" onclick="delUser('${u.id}')">Borrar</button>
+      </div></td>
+    </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+async function createUser(){
+  const email=document.getElementById('u-email').value.trim();
+  const pass=document.getElementById('u-pass').value;
+  const rol=document.getElementById('u-rol').value;
+  if(!email||!pass){ toast('Email y contraseña son obligatorios',false); return; }
+  try{
+    // Crear usuario via Admin API (service_role needed) — usamos signUp público
+    const res = await fetch(`${URL_SB}/auth/v1/admin/users`,{
+      method:'POST',
+      headers:{...hdrs(SESSION?.access_token),'Authorization':'Bearer '+SESSION?.access_token},
+      body:JSON.stringify({email,password:pass,email_confirm:true})
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.message||data.msg||'Error creando usuario');
+    // Asignar rol en perfiles
+    await fetch(`${URL_SB}/rest/v1/perfiles`,{
+      method:'POST',
+      headers:hdrs(SESSION?.access_token),
+      body:JSON.stringify({id:data.id, rol})
+    });
+    toast(`Usuario ${email} creado como ${rol} ✓`);
+    document.getElementById('u-email').value='';
+    document.getElementById('u-pass').value='';
+    loadUsuarios();
+  }catch(e){ toast('Error: '+e.message, false); }
+}
+
+async function toggleRol(id, rolActual){
+  const nuevoRol = rolActual==='admin' ? 'viewer' : 'admin';
+  try{
+    await fetch(`${URL_SB}/rest/v1/perfiles?id=eq.${id}`,{
+      method:'PATCH',
+      headers:hdrs(SESSION?.access_token),
+      body:JSON.stringify({rol:nuevoRol})
+    });
+    toast(`Rol cambiado a ${nuevoRol} ✓`);
+    loadUsuarios();
+  }catch(e){ toast('Error: '+e.message, false); }
+}
+
+async function delUser(id){
+  if(!confirm('¿Eliminar este usuario?')) return;
+  try{
+    await fetch(`${URL_SB}/rest/v1/perfiles?id=eq.${id}`,{
+      method:'DELETE', headers:hdrs(SESSION?.access_token)
+    });
+    toast('Usuario eliminado');
+    loadUsuarios();
+  }catch(e){ toast('Error: '+e.message, false); }
+}
+
+// Cerrar modal al clicar fuera
+document.getElementById('modal-bg').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeModal(); });
+</script>
+</body>
+</html>
