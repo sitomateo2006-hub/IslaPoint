@@ -276,7 +276,8 @@
 <script>
 // ── Configuración — solo credenciales, sin datos ──
 const URL_SB = 'https://qqsmojwgkgcemhvjcwgx.supabase.co';
-const KEY_SB = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxc21vandna2djZW1odmpjd2d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2OTgyODMsImV4cCI6MjA5NTI3NDI4M30.lGrIWt3w8CRtWCkRPFCDjgbP4GhS2m-1X6l26IKqbA8';
+const KEY_SB      = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxc21vandna2djZW1odmpjd2d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2OTgyODMsImV4cCI6MjA5NTI3NDI4M30.lGrIWt3w8CRtWCkRPFCDjgbP4GhS2m-1X6l26IKqbA8';
+const KEY_SERVICE = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxc21vandna2djZW1odmpjd2d4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTY5ODI4MywiZXhwIjoyMDk1Mjc0MjgzfQ.SBbsxPyYvcSKQOG_QG3EJGgmjd_RpEd3h9wg1LWWNps';
 const TABLE  = 'IslaPoint';
 
 let SESSION  = null;
@@ -530,11 +531,11 @@ async function createUser(){
   const rol    = document.getElementById('u-rol').value;
   if(!email||!pass){ toast('Email y contraseña son obligatorios',false); return; }
   try{
-    // Crear usuario en Supabase Auth
-    const res = await fetch(`${URL_SB}/auth/v1/signup`,{
+    // Crear usuario en Supabase Auth usando service role key
+    const res = await fetch(`${URL_SB}/auth/v1/admin/users`,{
       method:'POST',
-      headers:{'apikey':KEY_SB,'Content-Type':'application/json'},
-      body:JSON.stringify({email,password:pass})
+      headers:{'apikey':KEY_SERVICE,'Authorization':'Bearer '+KEY_SERVICE,'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:pass,email_confirm:true})
     });
     const data = await res.json();
     if(!res.ok||!data.user) throw new Error(data.message||data.msg||'Error creando usuario');
