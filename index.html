@@ -120,8 +120,8 @@
           <svg class="si" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
           <input type="text" id="si" placeholder="Buscar establecimiento…" autocomplete="off"/>
         </div>
-        <div class="fl">Zona</div>
-        <select class="fs" id="fz"><option value="">Todas las zonas</option></select>
+        <div class="fl">Calle</div>
+        <div id="fz-wrap" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
         <div class="fl">Actividad comercial</div>
         <select class="fs" id="fa"><option value="">Todas las actividades</option></select>
         <button id="br">✕ Limpiar filtros</button>
@@ -155,19 +155,82 @@ function pc(s){
   return p.length>=2?{lat:p[0],lng:p[1]}:null;
 }
 
-// ── Actividad → clase ──
-const AM={'restauracion':'restauracion','restauración':'restauracion','comercio':'comercio','servicios':'servicios','salud':'salud','cultura':'cultura','educacion':'educacion','educación':'educacion','ocio':'ocio','deporte':'deporte'};
-function ac(a){return 'b-'+(AM[(a||'').toLowerCase()]||'otro')}
+// ── Normalizar actividad ──
+function normAct(a){
+  if(!a) return '';
+  const s=a.trim();
+  const map={
+    'banco':'Bancaria','bancaria':'Bancaria',
+    'cafeteria':'Cafetería','cafetería':'Cafetería',
+    'compañia de telefono':'Telefonía','compañía de telefonía':'Telefonía','compañía de teléfonos':'Telefonía','compañia de teléfonos':'Telefonía',
+    'joyeria':'Joyería','joyería':'Joyería','joyería / relojería':'Joyería','relojería':'Joyería',
+    'pasteleria':'Pastelería','pastelería':'Pastelería',
+    'estetica':'Estética','estética':'Estética',
+    'cerveceria':'Cervecería','cervecería':'Cervecería',
+    'notaria':'Notaría','notaría':'Notaría',
+    'dental':'Clínica dental','odontólogo':'Clínica dental','clínica dental':'Clínica dental',
+    'libros':'Librería','librería':'Librería',
+    'juguetes':'Juguetería','juguetería':'Juguetería',
+    'textil (hombre)':'Textil','textil (hombres)':'Textil','textil (mujer)':'Textil','textil (mujeres)':'Textil',
+    'textil (hombres y mujer)':'Textil','textil (hombres y mujeres)':'Textil','textil (todo tipo)':'Textil','textil (bebés)':'Textil','textil (vestido de novia)':'Textil','textil':'Textil',
+    'tabaco':'Estanco','estanco':'Estanco',
+    'actividad comercial':'Comercio',
+    'audika (centro auditivo)':'Centro auditivo','centro auditivo':'Centro auditivo',
+    'tecnocasa (inmobiliaria)':'Inmobiliaria','inmobiliaria':'Inmobiliaria',
+    'podólogo / fisioterapia':'Fisioterapia','fisioterapeuta':'Fisioterapia',
+    'servicios electronicos':'Servicios electrónicos','servicios electrónicos':'Servicios electrónicos',
+    'reparaciones de móviles':'Reparación móviles','móviles':'Reparación móviles',
+    'compañía de telefonía':'Telefonía',
+  };
+  return map[s.toLowerCase()] || s;
+}
 
-// ── Color marcador ──
-const MC={restauracion:'#d97706',comercio:'#16a34a',servicios:'#7c3aed',salud:'#dc2626',cultura:'#be185d',educacion:'#1d4ed8',ocio:'#065f46',deporte:'#9a3412',otro:'#2563eb'};
-function mc(a){return MC[AM[(a||'').toLowerCase()]]||'#2563eb'}
+// ── Categoría → clase CSS color ──
+function ac(a){
+  const n=normAct(a).toLowerCase();
+  if(['restaurante','cafetería','heladería','cervecería','hostelería','hotel','pastelería','panadería'].includes(n)) return 'b-restauracion';
+  if(['bancaria','seguros','gestoría','notaría','abogados','correos','inss'].includes(n)) return 'b-servicios';
+  if(['farmacéutica','clínica dental','fisioterapia','centro auditivo','ortopedia','podólogo','sanitaria','gimnasio'].includes(n)) return 'b-salud';
+  if(['librería','cuadros / pinturas','fotografía','cultura'].includes(n)) return 'b-cultura';
+  if(['academia de oposiciones','autoescuela'].includes(n)) return 'b-educacion';
+  if(['salón de juegos','ocio'].includes(n)) return 'b-ocio';
+  if(['gimnasio','deporte'].includes(n)) return 'b-deporte';
+  return 'b-comercio';
+}
+
+// ── Color marcador por categoría ──
+function mc(a){
+  const cls=ac(a);
+  const cols={'b-restauracion':'#f59e0b','b-servicios':'#7c3aed','b-salud':'#ef4444','b-cultura':'#ec4899','b-educacion':'#3b82f6','b-ocio':'#10b981','b-deporte':'#f97316','b-comercio':'#16a34a'};
+  return cols[cls]||'#2563eb';
+}
 
 // ── Icono marcador ──
-function mkIcon(act){
-  const col=mc(act);
+function mkIcon(act, active=false){
+  const col = mc(act);
+  if(active){
+    // Marcador activo: blanco con borde de color, estrella encima, tamaño grande
+    return L.divIcon({
+      html:`<div style="position:relative;width:46px;height:58px;z-index:1000">
+        <svg xmlns="http://www.w3.org/2000/svg" width="46" height="58" viewBox="0 0 46 58">
+          <path d="M23 2C11.9 2 3 10.9 3 22c0 16.5 20 34 20 34s20-17.5 20-34C43 10.9 34.1 2 23 2z" fill="white" stroke="${col}" stroke-width="4"/>
+          <circle cx="23" cy="22" r="10" fill="${col}"/>
+          <circle cx="23" cy="22" r="5" fill="white"/>
+        </svg>
+        <div style="position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:14px;height:5px;background:rgba(0,0,0,0.25);border-radius:50%;filter:blur(2px)"></div>
+      </div>`,
+      className:'',iconSize:[46,58],iconAnchor:[23,58],popupAnchor:[0,-60]
+    });
+  }
+  // Marcador normal: color sólido pequeño
   return L.divIcon({
-    html:`<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36"><path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.3 21.7 0 14 0z" fill="${col}" stroke="white" stroke-width="2"/><circle cx="14" cy="14" r="5" fill="white" fill-opacity="0.9"/></svg>`,
+    html:`<div style="position:relative;width:28px;height:36px">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
+        <path d="M14 1C7.1 1 1.5 6.6 1.5 13.5c0 10.5 12.5 21.5 12.5 21.5s12.5-11 12.5-21.5C26.5 6.6 20.9 1 14 1z" fill="${col}" stroke="rgba(255,255,255,0.8)" stroke-width="1.5"/>
+        <circle cx="14" cy="13.5" r="4.5" fill="rgba(255,255,255,0.9)"/>
+      </svg>
+      <div style="position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);width:6px;height:3px;background:rgba(0,0,0,0.15);border-radius:50%;filter:blur(1px)"></div>
+    </div>`,
     className:'',iconSize:[28,36],iconAnchor:[14,36],popupAnchor:[0,-38]
   });
 }
@@ -179,18 +242,33 @@ function mkPopup(it){
   const rz=it.Fachada?`<div class="pr"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>${it.Fachada}</div>`:'';
   const rd=dir?`<div class="pr"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>${dir}</div>`:'';
   const re=it.Estado?`<div class="pr"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${it.Estado}</div>`:'';
-  return `${foto}<div class="ph"><div class="pt">${it.Nombre||'Sin nombre'}</div><span class="pb2">${it.Actividad||''}</span></div><div class="pbody">${rz}${rd}${re}</div>`;
+  return `${foto}<div class="ph"><div class="pt">${it.Nombre||'Sin nombre'}</div><span class="pb2">${normAct(it.Actividad)||''}</span></div><div class="pbody">${rz}${rd}${re}</div>`;
 }
 
 // ── Marcadores ──
+let activeMarkerId = null;
 function renderMarkers(data){
   mg.clearLayers(); mById={};
   data.forEach(it=>{
     const c=pc(it.Coordenadas); if(!c) return;
-    const m=L.marker([c.lat,c.lng],{icon:mkIcon(it.Actividad)}).bindPopup(mkPopup(it),{maxWidth:260});
-    m.on('click',()=>hlCard(it.id));
+    const m=L.marker([c.lat,c.lng],{icon:mkIcon(it.Actividad,false)}).bindPopup(mkPopup(it),{maxWidth:260});
+    m.on('click',()=>{ setActiveMarker(it.id); hlCard(it.id); });
     mg.addLayer(m); mById[it.id]=m;
   });
+}
+
+function setActiveMarker(id){
+  // Resetear marcador anterior
+  if(activeMarkerId && mById[activeMarkerId]){
+    const prev=allData.find(d=>d.id===activeMarkerId);
+    if(prev) mById[activeMarkerId].setIcon(mkIcon(prev.Actividad,false));
+  }
+  // Activar nuevo
+  if(mById[id]){
+    const curr=allData.find(d=>d.id===id);
+    if(curr) mById[id].setIcon(mkIcon(curr.Actividad,true));
+  }
+  activeMarkerId=id;
 }
 
 // ── Lista ──
@@ -204,13 +282,14 @@ function renderList(data){
   rl.innerHTML=data.map(it=>{
     const dir=[it.Calle,it['Número']].filter(Boolean).join(', ');
     const rd=dir?`<div class="mr"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>${dir}</div>`:'';
-    const rz=it.Fachada?`<div class="mr"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>${it.Fachada}</div>`:'';
-    return `<div class="card" data-id="${it.id}" onclick="fi(${it.id})"><div class="ch"><div class="cn">${it.Nombre||'Sin nombre'}</div><span class="bx ${ac(it.Actividad)}">${it.Actividad||'—'}</span></div><div class="cm">${rz}${rd}</div></div>`;
+    const rz=it.Calle?`<div class="mr"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>${it.Calle}</div>`:'';
+    return `<div class="card" data-id="${it.id}" onclick="fi(${it.id})"><div class="ch"><div class="cn">${it.Nombre||'Sin nombre'}</div><span class="bx ${ac(it.Actividad)}">${normAct(it.Actividad)||'—'}</span></div><div class="cm">${rz}${rd}</div></div>`;
   }).join('');
 }
 
 function fi(id){
   hlCard(id);
+  setActiveMarker(id);
   const m=mById[id];
   if(m){map.flyTo(m.getLatLng(),17,{animate:true,duration:0.7});setTimeout(()=>m.openPopup(),750);}
 }
@@ -224,21 +303,38 @@ function hlCard(id){
 
 function getF(){
   const q=document.getElementById('si').value.toLowerCase().trim();
-  const z=document.getElementById('fz').value;
+  const checked=[...document.querySelectorAll('.cz:checked')].map(c=>c.value);
   const a=document.getElementById('fa').value;
   return allData.filter(it=>{
     const mq=!q||(it.Nombre||'').toLowerCase().includes(q)||(it.Calle||'').toLowerCase().includes(q)||(it.Fachada||'').toLowerCase().includes(q);
-    return mq&&(!z||it.Fachada===z)&&(!a||it.Actividad===a);
+    const mz=checked.length===0||checked.includes(it.Calle);
+    return mq&&mz&&(!a||normAct(it.Actividad)===a);
   });
 }
 
 function applyF(){const f=getF();renderList(f);renderMarkers(f);}
 
 function popSel(data){
-  const zs=[...new Set(data.map(d=>d.Fachada).filter(Boolean))].sort();
-  const as=[...new Set(data.map(d=>d.Actividad).filter(Boolean))].sort();
-  const zEl=document.getElementById('fz'), aEl=document.getElementById('fa');
-  zs.forEach(z=>{const o=document.createElement('option');o.value=z;o.textContent=z;zEl.appendChild(o);});
+  const zs=[...new Set(data.map(d=>d.Calle).filter(Boolean))].sort();
+  const as=[...new Set(data.map(d=>normAct(d.Actividad)).filter(Boolean))].sort();
+
+  // Checkboxes de calles
+  const wrap=document.getElementById('fz-wrap');
+  wrap.innerHTML='';
+  zs.forEach(z=>{
+    const lbl=document.createElement('label');
+    lbl.style.cssText='display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,0.85);cursor:pointer;padding:4px 0';
+    const cb=document.createElement('input');
+    cb.type='checkbox'; cb.value=z; cb.className='cz';
+    cb.style.cssText='width:15px;height:15px;accent-color:#06b6d4;cursor:pointer;flex-shrink:0';
+    cb.addEventListener('change', applyF);
+    lbl.appendChild(cb);
+    lbl.appendChild(document.createTextNode(z));
+    wrap.appendChild(lbl);
+  });
+
+  // Select de actividades
+  const aEl=document.getElementById('fa');
   as.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;aEl.appendChild(o);});
 }
 
@@ -278,11 +374,10 @@ async function loadData(){
 }
 
 document.getElementById('si').addEventListener('input',applyF);
-document.getElementById('fz').addEventListener('change',applyF);
 document.getElementById('fa').addEventListener('change',applyF);
 document.getElementById('br').addEventListener('click',()=>{
   document.getElementById('si').value='';
-  document.getElementById('fz').value='';
+  document.querySelectorAll('.cz').forEach(c=>c.checked=false);
   document.getElementById('fa').value='';
   applyF();
 });
