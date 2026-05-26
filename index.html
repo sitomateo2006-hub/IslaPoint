@@ -11,7 +11,7 @@
     :root{
       --b9:#0a1628;--b8:#0d1f3c;--b7:#102a52;--b6:#1a3a6e;
       --b5:#1e4fa3;--b4:#2563eb;--b3:#3b82f6;--b2:#93c5fd;
-      --b1:#dbeafe;--b0:#eff6ff;--ac:#06b6d4;
+      --b0:#eff6ff;--ac:#06b6d4;
       --g1:#f1f5f9;--g2:#e2e8f0;--g4:#94a3b8;--g6:#475569;
       --sh:0 8px 32px rgba(10,22,40,.18);--r:14px;--rs:8px;
     }
@@ -33,7 +33,9 @@
     .hcount{background:rgba(37,99,235,.2);border:1px solid rgba(37,99,235,.4);color:var(--b2);font-size:12px;padding:4px 12px;border-radius:20px}
     #main{display:flex;flex:1;overflow:hidden}
     #sidebar{width:340px;background:#fff;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;box-shadow:4px 0 24px rgba(0,0,0,.15);z-index:10}
-    .stop{background:linear-gradient(160deg,var(--b8),var(--b7));padding:20px 18px 16px;flex-shrink:0}
+    .stop{background:linear-gradient(160deg,var(--b8),var(--b7));padding:20px 18px 16px;flex-shrink:0;overflow-y:auto;max-height:calc(100vh - 64px)}
+    .stop::-webkit-scrollbar{width:3px}
+    .stop::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:3px}
     .sw{position:relative;margin-bottom:14px}
     .si{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--b3);pointer-events:none}
     #si{width:100%;padding:10px 12px 10px 38px;border:1.5px solid rgba(59,130,246,.35);border-radius:var(--rs);background:rgba(255,255,255,.08);color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:.2s}
@@ -43,7 +45,11 @@
     select.fs{width:100%;padding:9px 32px 9px 12px;margin-bottom:10px;border:1.5px solid rgba(59,130,246,.35);border-radius:var(--rs);background:rgba(255,255,255,.08) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2393c5fd' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;appearance:none;outline:none;cursor:pointer}
     select.fs option{background:var(--b8);color:#fff}
     select.fs:focus{border-color:var(--b3);box-shadow:0 0 0 3px rgba(59,130,246,.2)}
-    #br{width:100%;padding:8px;background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.4);border-radius:var(--rs);color:var(--ac);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:.2s}
+    #fz-wrap{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+    .cz-label{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.85);cursor:pointer;padding:5px 8px;border-radius:6px;transition:.15s}
+    .cz-label:hover{background:rgba(255,255,255,.08)}
+    .cz-label input{width:15px;height:15px;accent-color:#06b6d4;cursor:pointer;flex-shrink:0}
+    #br{width:100%;padding:8px;background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.4);border-radius:var(--rs);color:var(--ac);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:.2s;margin-top:4px}
     #br:hover{background:rgba(6,182,212,.25)}
     .rh{padding:10px 18px 8px;background:var(--g1);border-bottom:1px solid var(--g2);flex-shrink:0}
     .rc{font-size:12px;color:var(--g6)}.rc strong{color:var(--b5)}
@@ -91,8 +97,8 @@
     .pr svg{color:var(--b4);flex-shrink:0}
     #eb{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;padding:10px 20px;border-radius:var(--rs);font-size:13px;z-index:9999;max-width:420px;text-align:center}
     @media(max-width:700px){
-      #sidebar{width:100%;position:absolute;bottom:0;left:0;right:0;height:50vh;z-index:100;border-radius:var(--r) var(--r) 0 0}
-      #map{height:50vh}
+      #sidebar{width:100%;position:absolute;bottom:0;left:0;right:0;height:55vh;z-index:100;border-radius:var(--r) var(--r) 0 0}
+      #map{height:45vh}
       #main{flex-direction:column}
       .htag{display:none}
       header{padding:0 14px}
@@ -121,8 +127,8 @@
           <input type="text" id="si" placeholder="Buscar establecimiento…" autocomplete="off"/>
         </div>
         <div class="fl">Calle</div>
-        <div id="fz-wrap" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
-        <div class="fl">Actividad comercial</div>
+        <div id="fz-wrap"></div>
+        <div class="fl" style="margin-top:4px">Actividad comercial</div>
         <select class="fs" id="fa"><option value="">Todas las actividades</option></select>
         <button id="br">✕ Limpiar filtros</button>
       </div>
@@ -135,9 +141,9 @@
 <div id="eb"></div>
 
 <script>
-const URL_SB  = 'https://qqsmojwgkgcemhvjcwgx.supabase.co';
-const KEY_SB  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxc21vandna2djZW1odmpjd2d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2OTgyODMsImV4cCI6MjA5NTI3NDI4M30.lGrIWt3w8CRtWCkRPFCDjgbP4GhS2m-1X6l26IKqbA8';
-const TABLE   = 'IslaPoint';
+const URL_SB = 'https://qqsmojwgkgcemhvjcwgx.supabase.co';
+const KEY_SB = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxc21vandna2djZW1odmpjd2d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2OTgyODMsImV4cCI6MjA5NTI3NDI4M30.lGrIWt3w8CRtWCkRPFCDjgbP4GhS2m-1X6l26IKqbA8';
+const TABLE  = 'IslaPoint';
 
 // ── Mapa ──
 const map = L.map('map',{center:[36.4759,-6.1983],zoom:14,zoomControl:false});
@@ -146,7 +152,7 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
   attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19
 }).addTo(map);
 const mg = L.layerGroup().addTo(map);
-let allData=[], mById={};
+let allData=[], mById={}, activeMarkerId=null;
 
 // ── Parsear coordenadas ──
 function pc(s){
@@ -158,12 +164,13 @@ function pc(s){
 // ── Normalizar actividad ──
 function normAct(a){
   if(!a) return '';
-  const s=a.trim();
-  const map={
+  const norm={
     'banco':'Bancaria','bancaria':'Bancaria',
     'cafeteria':'Cafetería','cafetería':'Cafetería',
-    'compañia de telefono':'Telefonía','compañía de telefonía':'Telefonía','compañía de teléfonos':'Telefonía','compañia de teléfonos':'Telefonía',
-    'joyeria':'Joyería','joyería':'Joyería','joyería / relojería':'Joyería','relojería':'Joyería',
+    'compañia de telefono':'Telefonía','compañía de telefonía':'Telefonía',
+    'compañía de teléfonos':'Telefonía','compañia de teléfonos':'Telefonía',
+    'joyeria':'Joyería','joyería':'Joyería',
+    'joyería / relojería':'Joyería','relojería':'Joyería',
     'pasteleria':'Pastelería','pastelería':'Pastelería',
     'estetica':'Estética','estética':'Estética',
     'cerveceria':'Cervecería','cervecería':'Cervecería',
@@ -171,65 +178,70 @@ function normAct(a){
     'dental':'Clínica dental','odontólogo':'Clínica dental','clínica dental':'Clínica dental',
     'libros':'Librería','librería':'Librería',
     'juguetes':'Juguetería','juguetería':'Juguetería',
-    'textil (hombre)':'Textil','textil (hombres)':'Textil','textil (mujer)':'Textil','textil (mujeres)':'Textil',
-    'textil (hombres y mujer)':'Textil','textil (hombres y mujeres)':'Textil','textil (todo tipo)':'Textil','textil (bebés)':'Textil','textil (vestido de novia)':'Textil','textil':'Textil',
+    'textil (hombre)':'Textil','textil (hombres)':'Textil',
+    'textil (mujer)':'Textil','textil (mujeres)':'Textil',
+    'textil (hombres y mujer)':'Textil','textil (hombres y mujeres)':'Textil',
+    'textil (todo tipo)':'Textil','textil (bebés)':'Textil',
+    'textil (vestido de novia)':'Textil','textil':'Textil',
     'tabaco':'Estanco','estanco':'Estanco',
     'actividad comercial':'Comercio',
     'audika (centro auditivo)':'Centro auditivo','centro auditivo':'Centro auditivo',
     'tecnocasa (inmobiliaria)':'Inmobiliaria','inmobiliaria':'Inmobiliaria',
     'podólogo / fisioterapia':'Fisioterapia','fisioterapeuta':'Fisioterapia',
-    'servicios electronicos':'Servicios electrónicos','servicios electrónicos':'Servicios electrónicos',
+    'servicios electronicos':'Servicios electrónicos',
     'reparaciones de móviles':'Reparación móviles','móviles':'Reparación móviles',
     'compañía de telefonía':'Telefonía',
   };
-  return map[s.toLowerCase()] || s;
+  return norm[a.trim().toLowerCase()] || a.trim();
 }
 
-// ── Categoría → clase CSS color ──
+// ── Categoría → clase CSS ──
 function ac(a){
   const n=normAct(a).toLowerCase();
   if(['restaurante','cafetería','heladería','cervecería','hostelería','hotel','pastelería','panadería'].includes(n)) return 'b-restauracion';
-  if(['bancaria','seguros','gestoría','notaría','abogados','correos','inss'].includes(n)) return 'b-servicios';
-  if(['farmacéutica','clínica dental','fisioterapia','centro auditivo','ortopedia','podólogo','sanitaria','gimnasio'].includes(n)) return 'b-salud';
-  if(['librería','cuadros / pinturas','fotografía','cultura'].includes(n)) return 'b-cultura';
+  if(['bancaria','seguros','notaría','abogados','correos','inss','gestoría'].includes(n)) return 'b-servicios';
+  if(['farmacéutica','clínica dental','fisioterapia','centro auditivo','ortopedia','sanitaria','gimnasio'].includes(n)) return 'b-salud';
+  if(['librería','cuadros / pinturas','fotografía'].includes(n)) return 'b-cultura';
   if(['academia de oposiciones','autoescuela'].includes(n)) return 'b-educacion';
-  if(['salón de juegos','ocio'].includes(n)) return 'b-ocio';
-  if(['gimnasio','deporte'].includes(n)) return 'b-deporte';
+  if(['salón de juegos'].includes(n)) return 'b-ocio';
+  if(['gimnasio'].includes(n)) return 'b-deporte';
   return 'b-comercio';
 }
 
-// ── Color marcador por categoría ──
+// ── Color marcador ──
 function mc(a){
-  const cls=ac(a);
-  const cols={'b-restauracion':'#f59e0b','b-servicios':'#7c3aed','b-salud':'#ef4444','b-cultura':'#ec4899','b-educacion':'#3b82f6','b-ocio':'#10b981','b-deporte':'#f97316','b-comercio':'#16a34a'};
-  return cols[cls]||'#2563eb';
+  const cols={'b-restauracion':'#f59e0b','b-servicios':'#7c3aed','b-salud':'#ef4444',
+    'b-cultura':'#ec4899','b-educacion':'#3b82f6','b-ocio':'#10b981','b-deporte':'#f97316','b-comercio':'#16a34a'};
+  return cols[ac(a)]||'#2563eb';
 }
 
 // ── Icono marcador ──
 function mkIcon(act, active=false){
-  const col = mc(act);
+  const col=mc(act);
   if(active){
-    // Marcador activo: blanco con borde de color, estrella encima, tamaño grande
     return L.divIcon({
-      html:`<div style="position:relative;width:46px;height:58px;z-index:1000">
+      html:`<div style="position:relative;width:46px;height:58px">
         <svg xmlns="http://www.w3.org/2000/svg" width="46" height="58" viewBox="0 0 46 58">
-          <path d="M23 2C11.9 2 3 10.9 3 22c0 16.5 20 34 20 34s20-17.5 20-34C43 10.9 34.1 2 23 2z" fill="white" stroke="${col}" stroke-width="4"/>
+          <path d="M23 2C11.9 2 3 10.9 3 22c0 16.5 20 34 20 34s20-17.5 20-34C43 10.9 34.1 2 23 2z"
+            fill="white" stroke="${col}" stroke-width="4"/>
           <circle cx="23" cy="22" r="10" fill="${col}"/>
           <circle cx="23" cy="22" r="5" fill="white"/>
         </svg>
-        <div style="position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:14px;height:5px;background:rgba(0,0,0,0.25);border-radius:50%;filter:blur(2px)"></div>
+        <div style="position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);
+          width:14px;height:5px;background:rgba(0,0,0,0.25);border-radius:50%;filter:blur(2px)"></div>
       </div>`,
       className:'',iconSize:[46,58],iconAnchor:[23,58],popupAnchor:[0,-60]
     });
   }
-  // Marcador normal: color sólido pequeño
   return L.divIcon({
     html:`<div style="position:relative;width:28px;height:36px">
       <svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
-        <path d="M14 1C7.1 1 1.5 6.6 1.5 13.5c0 10.5 12.5 21.5 12.5 21.5s12.5-11 12.5-21.5C26.5 6.6 20.9 1 14 1z" fill="${col}" stroke="rgba(255,255,255,0.8)" stroke-width="1.5"/>
+        <path d="M14 1C7.1 1 1.5 6.6 1.5 13.5c0 10.5 12.5 21.5 12.5 21.5s12.5-11 12.5-21.5C26.5 6.6 20.9 1 14 1z"
+          fill="${col}" stroke="rgba(255,255,255,0.8)" stroke-width="1.5"/>
         <circle cx="14" cy="13.5" r="4.5" fill="rgba(255,255,255,0.9)"/>
       </svg>
-      <div style="position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);width:6px;height:3px;background:rgba(0,0,0,0.15);border-radius:50%;filter:blur(1px)"></div>
+      <div style="position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);
+        width:6px;height:3px;background:rgba(0,0,0,0.15);border-radius:50%;filter:blur(1px)"></div>
     </div>`,
     className:'',iconSize:[28,36],iconAnchor:[14,36],popupAnchor:[0,-38]
   });
@@ -238,32 +250,29 @@ function mkIcon(act, active=false){
 // ── Popup ──
 function mkPopup(it){
   const dir=[it.Calle,it['Número']].filter(Boolean).join(', ');
-  const foto=it['Foto-URL']?`<img src="${it['Foto-URL']}" class="pi" onerror="this.style.display='none'">`:'' ;
-  const rz=it.Fachada?`<div class="pr"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>${it.Fachada}</div>`:'';
+  const foto=it['Foto-URL']?`<img src="${it['Foto-URL']}" class="pi" onerror="this.style.display='none'">` :'';
   const rd=dir?`<div class="pr"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>${dir}</div>`:'';
   const re=it.Estado?`<div class="pr"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${it.Estado}</div>`:'';
-  return `${foto}<div class="ph"><div class="pt">${it.Nombre||'Sin nombre'}</div><span class="pb2">${normAct(it.Actividad)||''}</span></div><div class="pbody">${rz}${rd}${re}</div>`;
+  return `${foto}<div class="ph"><div class="pt">${it.Nombre||'Sin nombre'}</div><span class="pb2">${normAct(it.Actividad)||''}</span></div><div class="pbody">${rd}${re}</div>`;
 }
 
 // ── Marcadores ──
-let activeMarkerId = null;
 function renderMarkers(data){
   mg.clearLayers(); mById={};
   data.forEach(it=>{
     const c=pc(it.Coordenadas); if(!c) return;
-    const m=L.marker([c.lat,c.lng],{icon:mkIcon(it.Actividad,false)}).bindPopup(mkPopup(it),{maxWidth:260});
+    const m=L.marker([c.lat,c.lng],{icon:mkIcon(it.Actividad,false)})
+      .bindPopup(mkPopup(it),{maxWidth:260});
     m.on('click',()=>{ setActiveMarker(it.id); hlCard(it.id); });
     mg.addLayer(m); mById[it.id]=m;
   });
 }
 
 function setActiveMarker(id){
-  // Resetear marcador anterior
   if(activeMarkerId && mById[activeMarkerId]){
     const prev=allData.find(d=>d.id===activeMarkerId);
     if(prev) mById[activeMarkerId].setIcon(mkIcon(prev.Actividad,false));
   }
-  // Activar nuevo
   if(mById[id]){
     const curr=allData.find(d=>d.id===id);
     if(curr) mById[id].setIcon(mkIcon(curr.Actividad,true));
@@ -282,14 +291,18 @@ function renderList(data){
   rl.innerHTML=data.map(it=>{
     const dir=[it.Calle,it['Número']].filter(Boolean).join(', ');
     const rd=dir?`<div class="mr"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>${dir}</div>`:'';
-    const rz=it.Calle?`<div class="mr"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>${it.Calle}</div>`:'';
-    return `<div class="card" data-id="${it.id}" onclick="fi(${it.id})"><div class="ch"><div class="cn">${it.Nombre||'Sin nombre'}</div><span class="bx ${ac(it.Actividad)}">${normAct(it.Actividad)||'—'}</span></div><div class="cm">${rz}${rd}</div></div>`;
+    return `<div class="card" data-id="${it.id}" onclick="fi(${it.id})">
+      <div class="ch">
+        <div class="cn">${it.Nombre||'Sin nombre'}</div>
+        <span class="bx ${ac(it.Actividad)}">${normAct(it.Actividad)||'—'}</span>
+      </div>
+      <div class="cm">${rd}</div>
+    </div>`;
   }).join('');
 }
 
 function fi(id){
-  hlCard(id);
-  setActiveMarker(id);
+  hlCard(id); setActiveMarker(id);
   const m=mById[id];
   if(m){map.flyTo(m.getLatLng(),17,{animate:true,duration:0.7});setTimeout(()=>m.openPopup(),750);}
 }
@@ -301,62 +314,63 @@ function hlCard(id){
   if(el){el.classList.add('active');el.scrollIntoView({behavior:'smooth',block:'nearest'});}
 }
 
+// ── Filtros ──
 function getF(){
   const q=document.getElementById('si').value.toLowerCase().trim();
   const checked=[...document.querySelectorAll('.cz:checked')].map(c=>c.value);
   const a=document.getElementById('fa').value;
   return allData.filter(it=>{
-    const mq=!q||(it.Nombre||'').toLowerCase().includes(q)||(it.Calle||'').toLowerCase().includes(q)||(it.Fachada||'').toLowerCase().includes(q);
+    const mq=!q||(it.Nombre||'').toLowerCase().includes(q)||(it.Calle||'').toLowerCase().includes(q);
     const mz=checked.length===0||checked.includes(it.Calle);
-    return mq&&mz&&(!a||normAct(it.Actividad)===a);
+    const ma=!a||normAct(it.Actividad)===a;
+    return mq&&mz&&ma;
   });
 }
 
 function applyF(){const f=getF();renderList(f);renderMarkers(f);}
 
+// ── Populate filtros ──
 function popSel(data){
-  const zs=[...new Set(data.map(d=>d.Calle).filter(Boolean))].sort();
-  const as=[...new Set(data.map(d=>normAct(d.Actividad)).filter(Boolean))].sort();
-
-  // Checkboxes de calles
+  // Calles como checkboxes
+  const calles=[...new Set(data.map(d=>d.Calle).filter(Boolean))].sort();
   const wrap=document.getElementById('fz-wrap');
   wrap.innerHTML='';
-  zs.forEach(z=>{
+  calles.forEach(z=>{
     const lbl=document.createElement('label');
-    lbl.style.cssText='display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,0.85);cursor:pointer;padding:4px 0';
+    lbl.className='cz-label';
     const cb=document.createElement('input');
     cb.type='checkbox'; cb.value=z; cb.className='cz';
-    cb.style.cssText='width:15px;height:15px;accent-color:#06b6d4;cursor:pointer;flex-shrink:0';
-    cb.addEventListener('change', applyF);
+    cb.addEventListener('change',applyF);
     lbl.appendChild(cb);
     lbl.appendChild(document.createTextNode(z));
     wrap.appendChild(lbl);
   });
 
-  // Select de actividades
+  // Actividades normalizadas en select
+  const acts=[...new Set(data.map(d=>normAct(d.Actividad)).filter(Boolean))].sort();
   const aEl=document.getElementById('fa');
-  as.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;aEl.appendChild(o);});
+  acts.forEach(a=>{
+    const o=document.createElement('option');
+    o.value=a; o.textContent=a; aEl.appendChild(o);
+  });
 }
 
-// ── Fetch directo a Supabase REST sin librería ──
+// ── Cargar datos ──
 async function loadData(){
   try{
     let all=[], from=0, bsz=1000;
     while(true){
-      const res = await fetch(
-        `${URL_SB}/rest/v1/${TABLE}?select=*&offset=${from}&limit=${bsz}`,
-        { headers:{ 'apikey':KEY_SB, 'Authorization':'Bearer '+KEY_SB, 'Content-Type':'application/json' } }
-      );
-      if(!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-      const batch = await res.json();
+      const res=await fetch(`${URL_SB}/rest/v1/${TABLE}?select=*&offset=${from}&limit=${bsz}`,{
+        headers:{'apikey':KEY_SB,'Authorization':'Bearer '+KEY_SB,'Content-Type':'application/json'}
+      });
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      const batch=await res.json();
       if(!batch||!batch.length) break;
       all=all.concat(batch);
       if(batch.length<bsz) break;
       from+=bsz;
     }
     allData=all;
-    console.log('Registros cargados:',allData.length);
-    allData.forEach(d=>{ if(!pc(d.Coordenadas)) console.warn('Sin coords:',d.Nombre,'→',d.Coordenadas); });
     document.getElementById('tc').textContent=`${allData.length} establecimientos`;
     popSel(allData);
     renderList(allData);
@@ -364,7 +378,7 @@ async function loadData(){
     const pts=allData.map(d=>pc(d.Coordenadas)).filter(Boolean).map(c=>[c.lat,c.lng]);
     if(pts.length) map.fitBounds(pts,{padding:[50,50]});
   }catch(err){
-    console.error('Error Supabase:',err);
+    console.error(err);
     document.getElementById('tc').textContent='Error';
     document.getElementById('rl').innerHTML=`<div class="smsg"><p style="color:#dc2626">❌ Error al cargar datos.<br><small>${err.message}</small></p></div>`;
     const b=document.getElementById('eb');
