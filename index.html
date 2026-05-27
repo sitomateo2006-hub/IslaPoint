@@ -357,28 +357,40 @@ function mkPopup(it){
   return `${foto}<div class="ph"><div class="pt">${it.Nombre||'Sin nombre'}</div><span class="pb2">${normAct(it.Actividad)||''}</span></div><div class="pbody">${rd}${re}</div>`;
 }
 
-// ── Marcadores — siempre resetea el activo al renderizar ──
+// ── Marcadores — resetea completamente en cada render ──
 function renderMarkers(data){
-  mg.clearLayers(); mById={}; activeMarkerId=null;
+  // Eliminar y recrear el layerGroup para limpiar cualquier estado del DOM
+  mg.clearLayers();
+  mById={};
+  activeMarkerId=null;
   data.forEach(it=>{
     const c=pc(it.Coordenadas); if(!c) return;
-    const m=L.marker([c.lat,c.lng],{icon:mkIcon(it.Actividad,false)})
+    // Siempre icono normal, nunca activo al crear
+    const icon = mkIcon(it.Actividad, false);
+    const m=L.marker([c.lat,c.lng],{icon, zIndexOffset:0})
       .bindPopup(mkPopup(it),{maxWidth:260});
     m.on('click',()=>{ setActiveMarker(it.id); hlCard(it.id); });
-    mg.addLayer(m); mById[it.id]=m;
+    mg.addLayer(m);
+    mById[it.id]=m;
   });
 }
 
 function setActiveMarker(id){
-  // Volver al icono normal el marcador anterior
-  if(activeMarkerId && mById[activeMarkerId]){
+  // Resetear marcador anterior a normal
+  if(activeMarkerId !== null && mById[activeMarkerId]){
     const prev=allData.find(d=>d.id===activeMarkerId);
-    if(prev) mById[activeMarkerId].setIcon(mkIcon(prev.Actividad,false));
+    if(prev){
+      mById[activeMarkerId].setIcon(mkIcon(prev.Actividad, false));
+      mById[activeMarkerId].setZIndexOffset(0);
+    }
   }
-  // Poner icono activo al nuevo
-  if(mById[id]){
+  // Activar nuevo marcador — rojo con pulso, encima de todos
+  if(id !== null && mById[id]){
     const curr=allData.find(d=>d.id===id);
-    if(curr) mById[id].setIcon(mkIcon(curr.Actividad,true));
+    if(curr){
+      mById[id].setIcon(mkIcon(curr.Actividad, true));
+      mById[id].setZIndexOffset(1000);
+    }
   }
   activeMarkerId=id;
 }

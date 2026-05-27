@@ -123,11 +123,14 @@
     .btn-cancel{padding:10px 20px;background:var(--g1);border:1px solid var(--g2);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--g6);cursor:pointer}
     .btn-save{padding:10px 24px;background:linear-gradient(135deg,var(--b4),var(--b5));color:#fff;border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
     .btn-save:hover{transform:translateY(-1px)}.btn-save:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    input[name="u-tipo"]:checked+span,
+    input[type="radio"][name="u-tipo"]{accent-color:#2563eb}
+    #lbl-viewer:has(input:checked),#lbl-admin:has(input:checked){border-color:#2563eb;background:#eff6ff;color:#1e40af}
 
     /* USUARIOS */
     .user-form{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:24px;margin-bottom:20px}
     .user-form-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px;color:var(--b9)}
-    .user-form-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end}
+    .user-form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:start}
 
     /* TOAST */
     #toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--rs);font-size:13px;font-weight:600;z-index:9999;display:none;box-shadow:var(--sh);max-width:320px}
@@ -209,10 +212,23 @@
           <div class="field"><label>Nombre</label><input type="text" id="u-nombre" placeholder="Nombre visible"/></div>
           <div class="field"><label>Contraseña</label><input type="password" id="u-pass" placeholder="Mín. 6 caracteres"/></div>
           <div class="field"><label>Caduca el</label><input type="date" id="u-caduca"/></div>
+          <div class="field">
+            <label>Tipo de usuario</label>
+            <div style="display:flex;gap:8px;margin-top:2px">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:500;color:#475569;flex:1;transition:.2s" id="lbl-viewer">
+                <input type="radio" name="u-tipo" id="u-viewer" value="viewer" checked style="accent-color:#2563eb"/>
+                👁️ Visualizador
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:500;color:#475569;flex:1;transition:.2s" id="lbl-admin">
+                <input type="radio" name="u-tipo" id="u-admin" value="admin" style="accent-color:#2563eb"/>
+                ⚙️ Administrador
+              </label>
+            </div>
+          </div>
           <div class="field" style="align-self:end">
             <button class="btn-add" onclick="createUser()">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Crear
+              Crear usuario
             </button>
           </div>
         </div>
@@ -422,6 +438,7 @@ async function createUser(){
   const nombre=document.getElementById('u-nombre').value.trim();
   const pass=document.getElementById('u-pass').value;
   const caduca=document.getElementById('u-caduca').value;
+  const rol=document.querySelector('input[name="u-tipo"]:checked')?.value||'viewer';
   if(!nombre||!pass){toast('Nombre y contraseña son obligatorios',false);return;}
   // Generar email automático a partir del nombre: "Juan García" → "juan.garcia@islapoint.local"
   const emailAuto = nombre.toLowerCase()
@@ -439,12 +456,13 @@ async function createUser(){
     await fetch(`${URL_SB}/rest/v1/perfiles`,{
       method:'POST',
       headers:hdrs(SESSION?.access_token),
-      body:JSON.stringify({id:data.id,nombre,email:emailAuto,rol:'viewer',caduca_en:caduca?new Date(caduca).toISOString():null})
+      body:JSON.stringify({id:data.id,nombre,email:emailAuto,rol,caduca_en:caduca?new Date(caduca).toISOString():null})
     });
     toast(`Usuario ${nombre} creado ✓`);
     document.getElementById('u-nombre').value='';
     document.getElementById('u-pass').value='';
     document.getElementById('u-caduca').value='';
+    document.getElementById('u-viewer').checked=true;
     loadUsuarios();
   }catch(e){toast('Error: '+e.message,false);}
 }
