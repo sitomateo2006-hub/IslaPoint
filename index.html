@@ -161,7 +161,7 @@
     .ldr{display:flex;align-items:center;justify-content:center;gap:6px;padding:24px;color:var(--b4);font-size:12px}
     .sp{width:16px;height:16px;border:2px solid var(--b2);border-top-color:var(--b4);border-radius:50%;animation:spin .7s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
-    @keyframes pulse-ring{0%{transform:translateX(-50%) scale(.4);opacity:1}100%{transform:translateX(-50%) scale(2);opacity:0}}
+    @keyframes pulse-ring{0%{transform:translateX(-50%) scale(.5);opacity:1}100%{transform:translateX(-50%) scale(2.2);opacity:0}}
 
 
 
@@ -386,15 +386,15 @@ function mkIcon(act, active=false){
   const col = mc(act);
   if(active){
     return L.divIcon({
-      html:`<div style="position:relative;width:36px;height:46px">
-        <div style="position:absolute;top:2px;left:50%;transform:translateX(-50%);width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,0.3);animation:pulse-ring 1s ease-out infinite;"></div>
-        <svg xmlns="http://www.w3.org/2000/svg" style="position:relative;z-index:2;display:block;margin:0 auto" width="36" height="46" viewBox="0 0 36 46">
-          <path d="M18 1C9.2 1 2 8.2 2 17c0 12.5 16 28 16 28s16-15.5 16-28C34 8.2 26.8 1 18 1z" fill="#ef4444" stroke="white" stroke-width="2.5"/>
-          <circle cx="18" cy="17" r="7" fill="white"/>
-          <circle cx="18" cy="17" r="4" fill="#ef4444"/>
+      html:`<div style="position:relative;width:40px;height:52px">
+        <div style="position:absolute;top:2px;left:50%;transform:translateX(-50%);width:36px;height:36px;border-radius:50%;background:rgba(234,179,8,0.35);animation:pulse-ring 1s ease-out infinite;"></div>
+        <svg xmlns="http://www.w3.org/2000/svg" style="position:relative;z-index:2;display:block;margin:0 auto" width="40" height="52" viewBox="0 0 40 52">
+          <path d="M20 1C10.6 1 3 8.6 3 18c0 14 17 33 17 33s17-19 17-33C37 8.6 29.4 1 20 1z" fill="#eab308" stroke="white" stroke-width="3"/>
+          <circle cx="20" cy="18" r="8" fill="white"/>
+          <circle cx="20" cy="18" r="4.5" fill="#eab308"/>
         </svg>
       </div>`,
-      className:'',iconSize:[36,46],iconAnchor:[18,46],popupAnchor:[0,-48]
+      className:'',iconSize:[40,52],iconAnchor:[20,52],popupAnchor:[0,-54]
     });
   }
   return L.divIcon({
@@ -475,14 +475,15 @@ function renderList(data){
 
 // ── Al seleccionar: acercar mapa + activar marcador ──
 function fi(id){
-  hlCard(id);
-  setActiveMarker(id);
-  // Volar a las coordenadas del establecimiento
-  const item=allData.find(d=>d.id===id);
-  const c=item?pc(item.Coordenadas):null;
+  // Convertir id a número o string según corresponda
+  const numId = typeof id === 'string' ? id : Number(id);
+  const item = allData.find(d=>d.id===numId || d.id===String(numId) || String(d.id)===String(numId));
+  hlCard(numId);
+  setActiveMarker(numId);
+  const c = item ? pc(item.Coordenadas) : null;
   if(c && map){
-    map.flyTo([c.lat,c.lng],18,{animate:true,duration:0.8});
-    setTimeout(()=>{ if(activeMarkerObj) activeMarkerObj.openPopup(); },900);
+    map.flyTo([c.lat, c.lng], 18, {animate:true, duration:0.9});
+    setTimeout(()=>{ if(activeMarkerObj) activeMarkerObj.openPopup(); }, 950);
   }
 }
 window.fi=fi;
