@@ -58,44 +58,55 @@
     .hout:hover{background:rgba(220,38,38,.25)}
 
     /* MAIN */
-    #main{display:flex;flex:1;overflow:hidden;position:relative}
+    #main{position:relative;flex:1;overflow:hidden}
 
-    /* SIDEBAR — posición fija, no se mueve con el mapa */
+    /* SIDEBAR — completamente fijo, independiente del mapa */
     #sidebar{
+      position:fixed;
+      top:56px;
+      left:0;
+      bottom:0;
       width:320px;
-      height:100%;
       background:#fff;
       display:flex;
       flex-direction:column;
-      flex-shrink:0;
       overflow:hidden;
-      box-shadow:4px 0 24px rgba(0,0,0,.15);
-      z-index:200;
-      position:relative;
-      transition:width .3s ease;
+      box-shadow:4px 0 24px rgba(0,0,0,.2);
+      z-index:400;
+      transition:transform .3s ease;
     }
-    #sidebar.collapsed{width:0;overflow:hidden}
+    #sidebar.collapsed{transform:translateX(-320px)}
 
-    /* TOGGLE TAB */
+    /* TOGGLE TAB — siempre visible */
     #sidebar-toggle{
-      position:absolute;
+      position:fixed;
       top:50%;
       transform:translateY(-50%);
       left:320px;
-      width:20px;height:60px;
+      width:22px;height:64px;
       background:var(--b7);
       border:none;
-      border-radius:0 8px 8px 0;
+      border-radius:0 10px 10px 0;
       cursor:pointer;
-      z-index:300;
+      z-index:401;
       display:flex;align-items:center;justify-content:center;
       color:var(--b2);
-      font-size:12px;
+      font-size:13px;font-weight:700;
       transition:left .3s ease, background .2s;
-      box-shadow:3px 0 10px rgba(0,0,0,.2);
+      box-shadow:4px 0 12px rgba(0,0,0,.25);
     }
-    #sidebar-toggle:hover{background:var(--b6)}
-    #sidebar.collapsed + #sidebar-toggle{left:0}
+    #sidebar-toggle:hover{background:var(--b6);color:#fff}
+    #sidebar.collapsed ~ #sidebar-toggle, #sidebar.collapsed + #sidebar-toggle{left:0}
+
+    /* MAP — ocupa toda la pantalla debajo del sidebar */
+    #map-container{
+      position:fixed;
+      top:56px;
+      left:0;
+      right:0;
+      bottom:0;
+      z-index:1;
+    }
 
     /* FILTROS */
     .stop{background:linear-gradient(160deg,var(--b8),var(--b7));padding:16px 14px 12px;flex-shrink:0;overflow-y:auto;max-height:50vh}
@@ -152,8 +163,7 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     @keyframes pulse-ring{0%{transform:translateX(-50%) scale(.4);opacity:1}100%{transform:translateX(-50%) scale(2);opacity:0}}
 
-    /* MAP */
-    #map{flex:1;min-width:0;z-index:1}
+
 
     /* Popup */
     .leaflet-popup-content-wrapper{border-radius:var(--r)!important;box-shadow:0 20px 60px rgba(10,22,40,.3)!important;padding:0!important;overflow:hidden;min-width:210px}
@@ -240,7 +250,7 @@
     <button id="sidebar-toggle" onclick="toggleSidebar()" title="Mostrar/ocultar filtros">◀</button>
 
     <!-- MAP -->
-    <div id="map"></div>
+    <div id="map-container"><div id="map" style="width:100%;height:100%"></div></div>
   </div>
 </div>
 <div id="eb"></div>
@@ -255,7 +265,9 @@ function toggleSidebar(){
   const sb = document.getElementById('sidebar');
   const btn = document.getElementById('sidebar-toggle');
   sb.classList.toggle('collapsed');
-  btn.textContent = sb.classList.contains('collapsed') ? '▶' : '◀';
+  const collapsed = sb.classList.contains('collapsed');
+  btn.textContent = collapsed ? '▶' : '◀';
+  btn.style.left = collapsed ? '0px' : '320px';
   setTimeout(()=>{ if(map) map.invalidateSize(); }, 320);
 }
 
@@ -314,7 +326,10 @@ function initMap(){
     attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19
   }).addTo(map);
   mg = L.layerGroup().addTo(map);
-  activeLayer = L.layerGroup().addTo(map); // layer separado solo para el marcador activo
+  // Crear pane especial para el marcador activo — siempre encima de todo
+  map.createPane('activePane');
+  map.getPane('activePane').style.zIndex = 650;
+  activeLayer = L.layerGroup().addTo(map);
 }
 
 // ── Parsear coordenadas ──
@@ -420,21 +435,24 @@ function renderMarkers(data){
 }
 
 function setActiveMarker(id){
-  // Quitar marcador activo anterior del activeLayer
+  // Limpiar marcador activo anterior
   if(activeLayer) activeLayer.clearLayers();
   activeMarkerObj=null;
+  activeMarkerId=null;
 
-  if(id!==null){
-    const curr=allData.find(d=>d.id===id);
-    const c=curr?pc(curr.Coordenadas):null;
-    if(curr && c){
-      // Crear marcador activo en el layer separado (encima de todo)
-      activeMarkerObj = L.marker([c.lat,c.lng],{icon:mkIcon(curr.Actividad,true),zIndexOffset:1000})
-        .bindPopup(mkPopup(curr),{maxWidth:240});
-      activeMarkerObj.on('click',()=>{ setActiveMarker(curr.id); hlCard(curr.id); });
-      if(activeLayer) activeLayer.addLayer(activeMarkerObj);
-    }
-  }
+  if(id===null) return;
+
+  const curr=allData.find(d=>d.id===id);
+  const c=curr?pc(curr.Coordenadas):null;
+  if(!curr||!c) return;
+
+  // Crear marcador activo en pane especial (siempre encima de todos)
+  activeMarkerObj = L.marker([c.lat,c.lng],{
+    icon:mkIcon(curr.Actividad,true),
+    pane:'activePane'
+  }).bindPopup(mkPopup(curr),{maxWidth:240});
+  activeMarkerObj.on('click',()=>{ setActiveMarker(curr.id); hlCard(curr.id); });
+  activeLayer.addLayer(activeMarkerObj);
   activeMarkerId=id;
 }
 
@@ -459,10 +477,12 @@ function renderList(data){
 function fi(id){
   hlCard(id);
   setActiveMarker(id);
-  const m=mById[id];
-  if(m){
-    map.flyTo(m.getLatLng(),18,{animate:true,duration:0.8});
-    setTimeout(()=>{ if(activeMarkerObj) activeMarkerObj.openPopup(); },850);
+  // Volar a las coordenadas del establecimiento
+  const item=allData.find(d=>d.id===id);
+  const c=item?pc(item.Coordenadas):null;
+  if(c && map){
+    map.flyTo([c.lat,c.lng],18,{animate:true,duration:0.8});
+    setTimeout(()=>{ if(activeMarkerObj) activeMarkerObj.openPopup(); },900);
   }
 }
 window.fi=fi;
