@@ -207,10 +207,10 @@
 <div id="app">
   <header>
     <a class="logo" href="#">
-      <img src="https://raw.githubusercontent.com/sitomateo2006-hub/IslaPoint/main/logo.jpg" alt="Bahía Sur"/>
-      <span class="logo-text">Isla<span>Point</span></span>
+      <img src="https://raw.githubusercontent.com/sitomateo2006-hub/IslaPoint/main/logo.jpg" alt="Bahía Sur" style="height:36px;object-fit:contain"/>
+      <span class="logo-text" style="margin-left:8px">Isla<span>Point</span></span>
     </a>
-    <span class="htag">Directorio Comercial · San Fernando, Cádiz</span>
+    <span class="htag">San Fernando, Cádiz</span>
     <div class="hright">
       <span class="huser" id="h-user"></span>
       <span class="hcount" id="tc">Cargando…</span>
@@ -400,7 +400,9 @@ function mkPopup(it){
 
 // ── Marcadores — siempre todos normales al renderizar ──
 function renderMarkers(data){
-  mg.clearLayers();
+  // Destruir y recrear el layer group para limpiar cualquier estado del DOM
+  if(mg){ map.removeLayer(mg); }
+  mg = L.layerGroup().addTo(map);
   mById={};
   activeMarkerId=null;
   data.forEach(it=>{
@@ -505,6 +507,7 @@ async function loadData(){
       all=all.concat(batch); if(batch.length<bsz) break; from+=bsz;
     }
     allData=all;
+    activeMarkerId=null; // reset explícito antes de renderizar
     document.getElementById('tc').textContent=`${allData.length} establecimientos`;
     popSel(allData); renderList(allData); renderMarkers(allData);
     const pts=allData.map(d=>pc(d.Coordenadas)).filter(Boolean).map(c=>[c.lat,c.lng]);
