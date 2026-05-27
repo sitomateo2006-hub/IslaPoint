@@ -153,6 +153,67 @@
     .pr{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--g6);margin-bottom:4px}
     .pr:last-child{margin-bottom:0}
     .pr svg{color:var(--b4);flex-shrink:0}
+
+    /* ── RESPONSIVE ── */
+
+    /* Móvil pequeño (< 480px) */
+    @media(max-width:480px){
+      .lbox{padding:28px 20px 24px;border-radius:16px}
+      .llogo img{height:44px}
+      .llogo-text{font-size:22px}
+      .lf input{font-size:16px;padding:13px 12px} /* 16px evita zoom en iOS */
+      .lbtn{font-size:14px;padding:14px}
+
+      header{height:48px;padding:0 12px}
+      .logo img{height:26px}
+      .logo-text{font-size:16px}
+      .htag{display:none}
+      .huser{display:none}
+      .hcount{font-size:10px;padding:2px 8px}
+      .hout{font-size:10px;padding:4px 8px}
+
+      #sidebar{width:100%!important;top:48px;transform:translateX(-100%)}
+      #sidebar.collapsed{transform:translateX(-100%)}
+      #sidebar:not(.collapsed){transform:translateX(0)}
+      #sb-toggle{top:48px;transform:none;left:auto!important;right:0;border-radius:10px 0 0 10px;width:36px;height:44px;font-size:16px}
+      #sidebar:not(.collapsed)~#sb-toggle{right:0;left:auto!important}
+
+      .stop{max-height:45vh;padding:12px 10px 8px}
+      .cn{font-size:12px}
+      .bx{font-size:8px}
+    }
+
+    /* Móvil normal (480px - 700px) */
+    @media(min-width:480px) and (max-width:700px){
+      .lbox{padding:32px 24px 28px}
+      header{height:52px;padding:0 14px}
+      .htag{display:none}
+      .huser{display:none}
+
+      #sidebar{width:100%!important;top:52px;transform:translateX(-100%)}
+      #sidebar:not(.collapsed){transform:translateX(0)}
+      #sb-toggle{top:52px;transform:none;left:auto!important;right:0;border-radius:10px 0 0 10px;width:32px;height:48px}
+      #sidebar:not(.collapsed)~#sb-toggle{right:0;left:auto!important}
+      .lf input{font-size:16px}
+    }
+
+    /* Tablet (700px - 1024px) */
+    @media(min-width:700px) and (max-width:1024px){
+      #sidebar{width:260px}
+      #sb-toggle{left:260px}
+      #sidebar.collapsed~#sb-toggle{left:0}
+      .htag{font-size:10px}
+    }
+
+    /* Touch — botones más grandes */
+    @media(hover:none) and (pointer:coarse){
+      .card{padding:12px 14px;margin-bottom:7px}
+      .cz-label{padding:7px 8px;font-size:13px}
+      .cz-label input{width:18px;height:18px}
+      #br{padding:10px}
+      select.fs{padding:11px 28px 11px 12px;font-size:13px}
+      #si{padding:12px 12px 12px 34px;font-size:16px}
+    }
   </style>
 </head>
 <body>
@@ -228,7 +289,11 @@ function toggleSB(){
   sb.classList.toggle('collapsed');
   const col=sb.classList.contains('collapsed');
   btn.textContent=col?'▶':'◀';
-  btn.style.left=col?'0':'300px';
+  // En pantallas grandes usar left, en móvil el CSS lo gestiona con right
+  const isMobile=window.innerWidth<=700;
+  if(!isMobile){
+    btn.style.left=col?'0':(window.innerWidth<=1024?'260px':'300px');
+  }
   setTimeout(()=>{ if(map) map.invalidateSize(); },320);
 }
 
