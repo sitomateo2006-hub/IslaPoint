@@ -142,6 +142,77 @@
     .section-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--b9);margin-bottom:6px}
     .section-sub{font-size:13px;color:var(--g4);margin-bottom:24px}
     @media(max-width:900px){.user-form-grid{grid-template-columns:1fr 1fr}.admin-content{padding:16px}}
+
+    /* ── RESPONSIVE ── */
+
+    /* Móvil pequeño (< 480px) */
+    @media(max-width:480px){
+      .lbox{padding:28px 18px 22px;border-radius:16px}
+      .llogo img{height:44px}
+      .llogo-text{font-size:22px}
+      .lf input{font-size:16px;padding:13px 12px}
+      .lbtn{font-size:14px;padding:14px}
+
+      .admin-header{padding:0 12px;height:52px}
+      .ah-logo-text{font-size:16px}
+      .ah-badge{display:none}
+      .ah-user{display:none}
+      .btn-logout{font-size:11px;padding:5px 10px}
+
+      .admin-nav{padding:0 12px;overflow-x:auto;white-space:nowrap}
+      .nav-tab{padding:12px 14px;font-size:12px}
+
+      .admin-content{padding:12px}
+      .stats-grid{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+      .stat-num{font-size:24px}
+      .stat-label{font-size:11px}
+
+      table{font-size:11px}
+      th{padding:8px 8px;font-size:10px}
+      td{padding:8px 8px}
+      .btn-edit,.btn-del{padding:6px 10px;font-size:11px}
+      .table-search{width:100%}
+      .table-head{flex-direction:column;gap:8px}
+      .btn-add{width:100%;justify-content:center}
+
+      .modal{border-radius:14px}
+      .modal-body{padding:14px 16px}
+      .modal-footer{padding:12px 16px}
+      .form-grid{grid-template-columns:1fr}
+      .form-grid .full{grid-column:1}
+
+      .user-form{padding:16px}
+      .user-form-grid{grid-template-columns:1fr}
+      #toast{right:12px;bottom:12px;max-width:calc(100vw - 24px)}
+    }
+
+    /* Móvil normal (480px - 700px) */
+    @media(min-width:480px) and (max-width:700px){
+      .admin-header{padding:0 16px}
+      .ah-badge{display:none}
+      .admin-content{padding:16px}
+      .stats-grid{grid-template-columns:1fr 1fr 1fr}
+      .form-grid{grid-template-columns:1fr}
+      .form-grid .full{grid-column:1}
+      .user-form-grid{grid-template-columns:1fr 1fr}
+      .lf input{font-size:16px}
+      table{font-size:12px}
+      th,td{padding:10px 10px}
+    }
+
+    /* Tablet (700px - 1024px) */
+    @media(min-width:700px) and (max-width:1024px){
+      .admin-content{padding:20px}
+      .form-grid{grid-template-columns:1fr 1fr}
+    }
+
+    /* Touch */
+    @media(hover:none) and (pointer:coarse){
+      .btn-edit,.btn-del{padding:8px 14px;font-size:12px}
+      .nav-tab{padding:14px 16px}
+      .field input,.field select{padding:13px 14px;font-size:16px}
+      .btn-save,.btn-cancel{padding:13px 20px}
+    }
   </style>
 </head>
 <body>
