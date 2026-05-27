@@ -19,21 +19,48 @@
     html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--b9);overflow:hidden}
 
     /* LOGIN */
-    #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0a1628,#102a52);position:fixed;inset:0;z-index:9999}
-    .lbox{background:#fff;border-radius:20px;padding:40px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
-    .llogo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:8px}
-    .llogo-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#06b6d4);display:flex;align-items:center;justify-content:center}
-    .llogo-text{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#0a1628}
+    #login-screen{
+      display:flex;align-items:center;justify-content:center;
+      min-height:100vh;position:fixed;inset:0;z-index:9999;
+      background:linear-gradient(145deg,#0a1628 0%,#0d2347 50%,#0a1628 100%);
+    }
+    #login-screen::before{
+      content:'';position:absolute;inset:0;
+      background:radial-gradient(ellipse at 30% 50%,rgba(37,99,235,0.15) 0%,transparent 60%),
+                 radial-gradient(ellipse at 70% 50%,rgba(6,182,212,0.1) 0%,transparent 60%);
+    }
+    .lbox{
+      position:relative;
+      background:#fff;border-radius:24px;padding:44px 40px 36px;
+      width:100%;max-width:400px;
+      box-shadow:0 32px 80px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.05);
+    }
+    .llogo{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:32px}
+    .llogo img{height:60px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.08))}
+    .llogo-text{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#0a1628;letter-spacing:-0.5px}
     .llogo-text span{color:#06b6d4}
-    .lsub{text-align:center;font-size:12px;color:#94a3b8;margin-bottom:28px;letter-spacing:.8px;text-transform:uppercase}
-    .lf{margin-bottom:16px}
-    .lf label{display:block;font-size:11px;font-weight:600;color:#475569;margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px}
-    .lf input{width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:.2s}
-    .lf input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-    .lbtn{width:100%;padding:12px;background:linear-gradient(135deg,#2563eb,#1e4fa3);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;margin-top:4px}
-    .lbtn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(37,99,235,.4)}
-    .lbtn:disabled{opacity:.6;cursor:not-allowed;transform:none}
-    .lerr{display:none;margin-top:12px;padding:10px;background:#fee2e2;border-radius:8px;color:#991b1b;font-size:13px;text-align:center}
+    .ldivider{width:40px;height:3px;background:linear-gradient(90deg,#2563eb,#06b6d4);border-radius:2px;margin:0 auto 28px}
+    .lf{margin-bottom:18px}
+    .lf label{display:block;font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:7px;text-transform:uppercase;letter-spacing:1px}
+    .lf input{
+      width:100%;padding:13px 16px;
+      border:1.5px solid #e2e8f0;border-radius:10px;
+      font-family:'DM Sans',sans-serif;font-size:14px;color:#0f172a;
+      outline:none;transition:.2s;background:#f8fafc;
+    }
+    .lf input:focus{border-color:#2563eb;background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+    .lf input::placeholder{color:#cbd5e1}
+    .lbtn{
+      width:100%;padding:14px;margin-top:8px;
+      background:linear-gradient(135deg,#2563eb,#1d4ed8);
+      color:#fff;border:none;border-radius:10px;
+      font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;
+      cursor:pointer;transition:.2s;letter-spacing:.2px;
+    }
+    .lbtn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(37,99,235,.4)}
+    .lbtn:active{transform:translateY(0)}
+    .lbtn:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+    .lerr{display:none;margin-top:14px;padding:11px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;color:#dc2626;font-size:13px;text-align:center}
 
     /* APP */
     #app{display:none;flex-direction:column;height:100vh}
@@ -125,18 +152,17 @@
 <div id="login-screen">
   <div class="lbox">
     <div class="llogo">
-      <div class="llogo-icon" style="background:none;box-shadow:none;padding:0;width:auto;height:auto">
-        <img src="https://raw.githubusercontent.com/sitomateo2006-hub/IslaPoint/main/logo.jpg" alt="Bahía Sur" style="height:60px;object-fit:contain"/>
-      </div>
+      <img src="https://raw.githubusercontent.com/sitomateo2006-hub/IslaPoint/main/logo.jpg" alt="Bahía Sur"/>
+      <span class="llogo-text">Isla<span>Point</span></span>
     </div>
-    <div class="lsub">Directorio Comercial · San Fernando</div>
+    <div class="ldivider"></div>
     <div class="lf">
       <label>Nombre de usuario</label>
-      <input type="text" id="l-nombre" placeholder="Tu nombre de usuario" autocomplete="username"/>
+      <input type="text" id="l-nombre" placeholder="Tu nombre de usuario" autocomplete="off"/>
     </div>
     <div class="lf">
       <label>Contraseña</label>
-      <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+      <input type="password" id="l-pass" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')doLogin()"/>
     </div>
     <button class="lbtn" id="l-btn" onclick="doLogin()">Entrar</button>
     <div class="lerr" id="l-err"></div>
