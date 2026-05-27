@@ -298,13 +298,13 @@ function doLogout(){
   document.getElementById('l-nombre').value='';
   document.getElementById('l-pass').value='';
   document.getElementById('l-err').style.display='none';
-  if(map){ map.remove(); map=null; mg=null; }
+  if(map){ map.remove(); map=null; mg=null; activeLayer=null; activeMarkerObj=null; }
   allData=[]; mById={}; activeMarkerId=null;
 }
 
 // ── MAPA — se crea solo tras el login ──
-let map=null, mg=null;
-let allData=[], mById={}, activeMarkerId=null;
+let map=null, mg=null, activeLayer=null;
+let allData=[], mById={}, activeMarkerId=null, activeMarkerObj=null;
 
 function initMap(){
   if(map) return;
@@ -314,6 +314,7 @@ function initMap(){
     attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19
   }).addTo(map);
   mg = L.layerGroup().addTo(map);
+  activeLayer = L.layerGroup().addTo(map); // layer separado solo para el marcador activo
 }
 
 // ── Parsear coordenadas ──
@@ -400,13 +401,16 @@ function mkPopup(it){
 
 // ── Marcadores — siempre todos normales al renderizar ──
 function renderMarkers(data){
-  // Destruir y recrear el layer group para limpiar cualquier estado del DOM
+  // Limpiar ambos layers
   if(mg){ map.removeLayer(mg); }
+  if(activeLayer){ activeLayer.clearLayers(); }
   mg = L.layerGroup().addTo(map);
   mById={};
   activeMarkerId=null;
+  activeMarkerObj=null;
   data.forEach(it=>{
     const c=pc(it.Coordenadas); if(!c) return;
+    // SIEMPRE icono normal — nunca activo
     const m=L.marker([c.lat,c.lng],{icon:mkIcon(it.Actividad,false),zIndexOffset:0})
       .bindPopup(mkPopup(it),{maxWidth:240});
     m.on('click',()=>{ setActiveMarker(it.id); hlCard(it.id); });
@@ -416,13 +420,20 @@ function renderMarkers(data){
 }
 
 function setActiveMarker(id){
-  if(activeMarkerId!==null && mById[activeMarkerId]){
-    const prev=allData.find(d=>d.id===activeMarkerId);
-    if(prev){ mById[activeMarkerId].setIcon(mkIcon(prev.Actividad,false)); mById[activeMarkerId].setZIndexOffset(0); }
-  }
-  if(id!==null && mById[id]){
+  // Quitar marcador activo anterior del activeLayer
+  if(activeLayer) activeLayer.clearLayers();
+  activeMarkerObj=null;
+
+  if(id!==null){
     const curr=allData.find(d=>d.id===id);
-    if(curr){ mById[id].setIcon(mkIcon(curr.Actividad,true)); mById[id].setZIndexOffset(1000); }
+    const c=curr?pc(curr.Coordenadas):null;
+    if(curr && c){
+      // Crear marcador activo en el layer separado (encima de todo)
+      activeMarkerObj = L.marker([c.lat,c.lng],{icon:mkIcon(curr.Actividad,true),zIndexOffset:1000})
+        .bindPopup(mkPopup(curr),{maxWidth:240});
+      activeMarkerObj.on('click',()=>{ setActiveMarker(curr.id); hlCard(curr.id); });
+      if(activeLayer) activeLayer.addLayer(activeMarkerObj);
+    }
   }
   activeMarkerId=id;
 }
@@ -451,7 +462,7 @@ function fi(id){
   const m=mById[id];
   if(m){
     map.flyTo(m.getLatLng(),18,{animate:true,duration:0.8});
-    setTimeout(()=>m.openPopup(),850);
+    setTimeout(()=>{ if(activeMarkerObj) activeMarkerObj.openPopup(); },850);
   }
 }
 window.fi=fi;

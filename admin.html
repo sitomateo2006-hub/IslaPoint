@@ -253,7 +253,11 @@
         <div class="field"><label>Calle</label><input type="text" id="f-calle" placeholder="Nombre de la calle"/></div>
         <div class="field"><label>Número</label><input type="text" id="f-numero" placeholder="Nº"/></div>
         <div class="field full"><label>Coordenadas</label><input type="text" id="f-coords" placeholder="36.4759, -6.1983"/></div>
-        <div class="field full"><label>Foto URL</label><input type="text" id="f-foto" placeholder="https://…"/></div>
+        <div class="field full">
+          <label>Foto URL</label>
+          <input type="text" id="f-foto" placeholder="https://… (URL pública de la imagen)"/>
+          <div style="font-size:11px;color:var(--g4);margin-top:4px">💡 Sube la foto a <a href="https://imgur.com/upload" target="_blank" style="color:var(--b4)">imgur.com</a> y pega aquí el enlace directo (.jpg/.png)</div>
+        </div>
         <div class="field"><label>Estado</label><input type="text" id="f-estado" placeholder="Ej: Activo…"/></div>
       </div>
     </div>
@@ -356,7 +360,10 @@ function filterEst(){const q=document.getElementById('est-search').value.toLower
 
 function openEstModal(id=null){
   editId=id;
-  document.getElementById('modal-est-title').textContent=id?'Editar establecimiento':'Nuevo establecimiento';
+  const codigo = id ? (allEst.find(e=>e.id===id)||{}).Codigo : null;
+  document.getElementById('modal-est-title').textContent = id
+    ? `Editar establecimiento ${codigo ? '#'+codigo : ''}`
+    : 'Nuevo establecimiento';
   if(id){
     const it=allEst.find(e=>e.id===id);
     if(it){
