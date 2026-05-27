@@ -125,10 +125,9 @@
 <div id="login-screen">
   <div class="lbox">
     <div class="llogo">
-      <div class="llogo-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M17 17l4 4"/><path d="M11 8v6M8 11h6"/></svg>
+      <div class="llogo-icon" style="background:none;box-shadow:none;padding:0;width:auto;height:auto">
+        <img src="https://raw.githubusercontent.com/sitomateo2006-hub/IslaPoint/main/logo.jpg" alt="Bahía Sur" style="height:60px;object-fit:contain"/>
       </div>
-      <span class="llogo-text">Isla<span>Point</span></span>
     </div>
     <div class="lsub">Directorio Comercial · San Fernando</div>
     <div class="lf">
@@ -148,10 +147,9 @@
 <div id="app">
   <header>
     <a class="logo" href="#">
-      <div class="logo-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M17 17l4 4"/><path d="M11 8v6M8 11h6"/></svg>
+      <div style="display:flex;align-items:center">
+        <img src="https://raw.githubusercontent.com/sitomateo2006-hub/IslaPoint/main/logo.jpg" alt="Bahía Sur" style="height:40px;object-fit:contain;filter:brightness(0) invert(1)"/>
       </div>
-      <span class="logo-text">Isla<span>Point</span></span>
     </a>
     <span class="htag">Directorio Comercial · San Fernando, Cádiz</span>
     <div class="hright">
@@ -219,6 +217,7 @@ async function doLogin(){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='flex';
     document.getElementById('h-user').textContent='👤 '+nombre;
+    initMap();
     loadData();
   }catch(e){ err.textContent=e.message; err.style.display='block'; }
   finally{ btn.disabled=false; btn.textContent='Entrar'; }
@@ -232,14 +231,19 @@ function doLogout(){
   document.getElementById('l-err').style.display='none';
 }
 
-// ── Mapa ──
-const map = L.map('map',{center:[36.4759,-6.1983],zoom:14,zoomControl:false});
-L.control.zoom({position:'bottomright'}).addTo(map);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19
-}).addTo(map);
-const mg = L.layerGroup().addTo(map);
+// ── Mapa (se inicializa una sola vez tras el login) ──
+let map=null, mg=null;
 let allData=[], mById={}, activeMarkerId=null;
+
+function initMap(){
+  if(map) return; // ya inicializado
+  map = L.map('map',{center:[36.4759,-6.1983],zoom:14,zoomControl:false});
+  L.control.zoom({position:'bottomright'}).addTo(map);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19
+  }).addTo(map);
+  mg = L.layerGroup().addTo(map);
+}
 
 function pc(s){
   if(!s||typeof s!=='string') return null;
