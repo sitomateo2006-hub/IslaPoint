@@ -137,6 +137,45 @@
     .ldr{display:flex;align-items:center;justify-content:center;gap:6px;padding:24px;color:var(--b4);font-size:12px}
     .sp{width:16px;height:16px;border:2px solid var(--b2);border-top-color:var(--b4);border-radius:50%;animation:spin .7s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* TARJETA INFERIOR — info establecimiento */
+    #card-info{
+      position:fixed;
+      bottom:0;left:0;right:0;
+      background:#fff;
+      border-radius:20px 20px 0 0;
+      box-shadow:0 -4px 30px rgba(10,22,40,.15);
+      z-index:300;
+      transform:translateY(100%);
+      transition:transform .3s cubic-bezier(.32,.72,0,1);
+      display:flex;flex-direction:column;
+    }
+    #card-info.visible{transform:translateY(0)}
+    .card-info-handle{width:36px;height:4px;background:var(--g2);border-radius:2px;margin:10px auto 6px;flex-shrink:0}
+    .card-info-close{
+      position:absolute;top:10px;right:14px;
+      width:26px;height:26px;border-radius:50%;border:none;
+      background:var(--g1);color:var(--g6);
+      font-size:13px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .card-info-close:hover{background:var(--g2)}
+    .card-info-inner{display:flex;gap:14px;padding:6px 16px 16px;align-items:flex-start}
+    .card-info-foto-wrap{width:80px;height:80px;flex-shrink:0;border-radius:12px;overflow:hidden;border:1px solid var(--g2)}
+    .card-info-foto{width:80px;height:80px;object-fit:cover;display:block}
+    .card-info-foto-placeholder{
+      width:80px;height:80px;
+      background:var(--g1);
+      display:flex;align-items:center;justify-content:center;
+      color:var(--g4);
+    }
+    .card-info-datos{flex:1;min-width:0;padding-top:2px}
+    .card-info-nombre{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--b9);margin-bottom:4px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .card-info-badge{display:inline-block;font-size:9px;font-weight:600;padding:2px 8px;border-radius:20px;margin-bottom:8px}
+    .card-info-row{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--g6);margin-bottom:4px}
+    .card-info-row svg{color:var(--b4);flex-shrink:0}
+    .card-info-codigo{font-size:10px;color:var(--g4);margin-top:6px}
+    .hidden-marker{opacity:0!important;pointer-events:none!important;width:0!important;height:0!important}
     .canailla-marker, .canailla-marker *{pointer-events:none!important}
     .leaflet-pane.leaflet-pane-activePane{pointer-events:none!important}
 
@@ -283,6 +322,70 @@ let map=null, mg=null, activeLayer=null;
 let allData=[], mById={}, activeMarkerId=null, activeMarkerObj=null;
 
 // ── Toggle sidebar ──
+function cerrarInfo(){
+  document.getElementById('card-info').classList.remove('visible');
+  // Restaurar marcador
+  if(activeMarkerId){
+    showMarker(activeMarkerId);
+    if(activeLayer) activeLayer.clearLayers();
+    activeMarkerId=null;
+    activeMarkerObj=null;
+  }
+  // Restaurar sidebar y habilitar botón toggle
+  const sb=document.getElementById('sidebar');
+  if(sb && sb.classList.contains('collapsed')){
+    toggleSB();
+  }
+  const sbBtn=document.getElementById('sb-toggle');
+  if(sbBtn){ sbBtn.style.pointerEvents=''; sbBtn.style.opacity=''; }
+}
+
+function mostrarInfo(item){
+  if(!item) return;
+  const card=document.getElementById('card-info');
+
+  // Foto
+  const foto=item['Foto-URL'];
+  const fotoEl=document.getElementById('ci-foto');
+  const placeholder=document.getElementById('ci-placeholder');
+  if(foto){
+    fotoEl.src=foto;
+    fotoEl.style.display='block';
+    placeholder.style.display='none';
+  }else{
+    fotoEl.style.display='none';
+    placeholder.style.display='flex';
+  }
+
+  // Datos
+  document.getElementById('ci-nombre').textContent=item.Nombre||'Sin nombre';
+  const badge=document.getElementById('ci-badge');
+  badge.textContent=normAct(item.Actividad)||'—';
+  badge.className='card-info-badge';
+
+  const dir=[item.Calle,item['Número']].filter(Boolean).join(', ');
+  const dirRow=document.getElementById('ci-dir');
+  if(dir){ dirRow.style.display='flex'; document.getElementById('ci-dir-txt').textContent=dir; }
+  else dirRow.style.display='none';
+
+  const estado=item.Estado;
+  const estRow=document.getElementById('ci-estado-row');
+  if(estado){ estRow.style.display='flex'; document.getElementById('ci-estado-txt').textContent=estado; }
+  else estRow.style.display='none';
+
+  document.getElementById('ci-codigo').textContent='Código #'+item.Codigo;
+
+  // Colapsar sidebar y deshabilitar el botón toggle
+  const sb=document.getElementById('sidebar');
+  if(sb && !sb.classList.contains('collapsed')){
+    toggleSB();
+  }
+  // Deshabilitar botón toggle mientras hay info abierta
+  const sbBtn=document.getElementById('sb-toggle');
+  if(sbBtn){ sbBtn.style.pointerEvents='none'; sbBtn.style.opacity='0.3'; }
+  card.classList.add('visible');
+}
+
 function toggleSB(){
   const sb=document.getElementById('sidebar');
   const btn=document.getElementById('sb-toggle');
@@ -434,60 +537,36 @@ function mkPopup(it){
 }
 
 // ── Marcadores ──
-function renderMarkers(data){
+function renderMarkers(data, skipSid=null){
   if(mg){ map.removeLayer(mg); }
-  if(activeLayer){ activeLayer.clearLayers(); }
   mg=L.layerGroup().addTo(map);
-  activeLayer=L.layerGroup().addTo(map);
-  mById={}; activeMarkerId=null; activeMarkerObj=null;
+  mById={};
   data.forEach(function(it){
     const c=pc(it.Coordenadas); if(!c) return;
     const itemId=String(it.Codigo);
+    // Si este es el activo, no crear marcador normal (la cañailla lo sustituye)
+    if(itemId === skipSid) return;
     const m=L.marker([c.lat,c.lng],{icon:mkIcon(it.Actividad,false)})
       .bindPopup(mkPopup(it),{maxWidth:240});
     m.on('click', (function(id){ return function(){ fi(id); }; })(itemId));
     mg.addLayer(m);
-    mById[itemId]=m; // itemId = Codigo
+    mById[itemId]=m;
   });
 }
 
-function setActiveStar(id){
-  // Mostrar de nuevo el marcador anterior si estaba oculto
-  if(activeMarkerId && mById[activeMarkerId]){
-    mById[activeMarkerId].getElement() && (mById[activeMarkerId].getElement().style.display='');
-  }
-  if(activeLayer) activeLayer.clearLayers();
-  activeMarkerObj=null;
-  activeMarkerId=null;
-  if(id===null) return;
-  const sid=String(id);
-  const curr=allData.find(d=>String(d.Codigo)===sid);
-  const c=curr?pc(curr.Coordenadas):null;
-  if(!curr||!c) return;
-  // Ocultar el puntero normal de este establecimiento
-  if(mById[sid] && mById[sid].getElement()){
-    mById[sid].getElement().style.display='none';
-  }
-  activeMarkerObj=L.marker([c.lat,c.lng],{
-    icon:mkIcon(curr.Actividad,true),
-    pane:'starPane'
-  }).bindPopup(mkPopup(curr),{maxWidth:240});
-  activeLayer.addLayer(activeMarkerObj);
-  activeMarkerId=sid;
-}
+// setActiveStar eliminado - toda la lógica está en fi()
 
 // ── Seleccionar establecimiento ──
 function hideMarker(sid){
-  if(mById[sid]){
-    const el=mById[sid].getElement();
-    if(el) el.style.opacity='0';
-  }
+  // Recrear marcadores excluyendo el activo
+  if(!sid) return;
+  const currentData = getF();
+  renderMarkers(currentData, sid);
 }
 function showMarker(sid){
-  if(sid && mById[sid]){
-    const el=mById[sid].getElement();
-    if(el) el.style.opacity='1';
-  }
+  // Recrear marcadores incluyendo todos
+  const currentData = getF();
+  renderMarkers(currentData, null);
 }
 
 function fi(id){
@@ -506,19 +585,21 @@ function fi(id){
   const c=item?pc(item.Coordenadas):null;
   if(!c||!map||!item) return;
 
-  // Ocultar puntero del seleccionado
+  // Excluir marcador normal del establecimiento activo
   hideMarker(sid);
 
-  // Poner cañailla
+  // Poner cañailla (sin popup — la info va en el panel derecho)
   activeMarkerObj=L.marker([c.lat,c.lng],{
     icon:mkIcon(item.Actividad,true),
     pane:'starPane'
-  }).bindPopup(mkPopup(item),{maxWidth:240});
+  });
   activeLayer.addLayer(activeMarkerObj);
   activeMarkerId=sid;
 
-  map.setView([c.lat,c.lng],21);
-  setTimeout(()=>{ if(activeMarkerObj) activeMarkerObj.openPopup(); },400);
+  // Mostrar info en panel derecho
+  mostrarInfo(item);
+
+  map.setView([c.lat,c.lng],18);
 }
 window.fi=fi;
 
@@ -610,5 +691,33 @@ document.getElementById('br').addEventListener('click',()=>{
   applyF();
 });
 </script>
+
+<!-- TARJETA INFERIOR -->
+<div id="card-info">
+  <div class="card-info-handle"></div>
+  <button class="card-info-close" onclick="cerrarInfo()">✕</button>
+  <div class="card-info-inner">
+    <div class="card-info-foto-wrap">
+      <div class="card-info-foto-placeholder" id="ci-placeholder">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </div>
+      <img id="ci-foto" class="card-info-foto" src="" alt="" style="display:none"/>
+    </div>
+    <div class="card-info-datos">
+      <div class="card-info-nombre" id="ci-nombre">—</div>
+      <span class="card-info-badge b-otro" id="ci-badge">—</span>
+      <div class="card-info-row" id="ci-dir" style="display:none">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span id="ci-dir-txt"></span>
+      </div>
+      <div class="card-info-row" id="ci-estado-row" style="display:none">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span id="ci-estado-txt"></span>
+      </div>
+      <div class="card-info-codigo" id="ci-codigo"></div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
