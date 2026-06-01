@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IslaPoint — Asignar Fotos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+:root{
+  --b9:#0a1628;--b8:#0d1f3c;--b7:#102a52;--b6:#1a3a6e;
+  --b4:#2563eb;--b5:#1e4fa3;--b2:#93c5fd;--b0:#eff6ff;
+  --ac:#06b6d4;
+  --g1:#f1f5f9;--g2:#e2e8f0;--g4:#94a3b8;--g6:#475569;
+  --green:#16a34a;--glight:#dcfce7;--gdark:#15803d;
+  --red:#dc2626;--rs:8px;--hh:52px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--g1);overflow:hidden;-webkit-tap-highlight-color:transparent}
+
+/* ── LOGIN ── */
+#login-screen{
+  display:flex;align-items:center;justify-content:center;
+  position:fixed;inset:0;z-index:9999;padding:16px;
+  background:linear-gradient(145deg,#0a1628,#0d2347);
+}
+.lbox{background:#fff;border-radius:20px;padding:36px 32px 28px;width:100%;max-width:380px;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+.llogo{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:18px}
+.llogo img{height:50px;object-fit:contain}
+.llogo-text{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#0a1628}
+.llogo-text span{color:#06b6d4}
+.lsub-wrap{text-align:center;margin-bottom:18px}
+.lsub{font-size:11px;color:var(--g4);text-transform:uppercase;letter-spacing:.8px;background:var(--g1);border-radius:20px;padding:4px 14px;border:1px solid var(--g2)}
+.lf{margin-bottom:14px}
+.lf label{display:block;font-size:11px;font-weight:700;color:var(--g6);margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px}
+.lf input{width:100%;padding:13px 14px;border:1.5px solid var(--g2);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:16px;outline:none;transition:.2s;background:#f8fafc;color:#0f172a}
+.lf input:focus{border-color:var(--b4);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.lbtn{width:100%;padding:13px;background:linear-gradient(135deg,var(--b4),var(--b5));color:#fff;border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:.2s;min-height:48px}
+.lbtn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(37,99,235,.4)}
+.lbtn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.lerr{display:none;margin-top:10px;padding:10px;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--rs);color:var(--red);font-size:13px;text-align:center}
+
+/* ── APP ── */
+#app{display:none;flex-direction:column;height:100vh}
+header{background:linear-gradient(135deg,var(--b9),var(--b8) 60%,var(--b7));height:var(--hh);padding:0 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.hlogo{display:flex;align-items:center;gap:10px}
+.hlogo img{height:28px;object-fit:contain}
+.hlogo-text{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff}
+.hlogo-text span{color:var(--ac)}
+.htitle{font-size:11px;color:var(--b2);background:rgba(37,99,235,.2);border:1px solid rgba(37,99,235,.3);padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.8px;font-weight:600}
+.hright{display:flex;align-items:center;gap:10px}
+.hprog{font-size:12px;color:var(--b2);background:rgba(37,99,235,.2);padding:3px 12px;border-radius:20px;border:1px solid rgba(37,99,235,.3);white-space:nowrap}
+.hout{padding:6px 12px;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.3);border-radius:6px;color:#fca5a5;font-size:11px;font-weight:600;cursor:pointer}
+.hout:hover{background:rgba(220,38,38,.25)}
+.prog-bar{height:3px;background:var(--g2);flex-shrink:0}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--b4),var(--ac));transition:width .4s ease}
+
+/* ── LAYOUT ── */
+.main{display:grid;grid-template-columns:1fr 1fr;flex:1;min-height:0;overflow:hidden}
+
+/* ── PANEL FOTOS ── */
+.panel-fotos{background:#fff;border-right:1px solid var(--g2);display:flex;flex-direction:column;overflow:hidden}
+.panel-header{padding:12px 14px;border-bottom:1px solid var(--g2);background:var(--g1);flex-shrink:0}
+.panel-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--b9);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.foto-nav{display:flex;align-items:center;gap:8px}
+.nav-btn{padding:8px 14px;background:var(--b4);color:#fff;border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;min-height:36px;white-space:nowrap}
+.nav-btn:hover{background:var(--b5)}
+.nav-btn:disabled{opacity:.35;cursor:not-allowed}
+.foto-counter{font-size:13px;color:var(--g6);flex:1;text-align:center;font-weight:500}
+
+/* Zona imagen */
+.foto-display{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;overflow:hidden;background:#f8fafc;min-height:0;position:relative}
+.foto-display img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.15);cursor:pointer}
+.foto-display img:hover{transform:scale(1.02);transition:transform .2s}
+.foto-cargando{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f8fafc;font-size:13px;color:var(--g4);gap:8px}
+.foto-nombre{margin-top:6px;font-size:10px;color:var(--g4);text-align:center;font-family:monospace;flex-shrink:0}
+.foto-status{margin-top:4px;font-size:11px;font-weight:600;text-align:center;padding:3px 10px;border-radius:20px;flex-shrink:0}
+.foto-status.asignada{color:var(--gdark);background:var(--glight)}
+.foto-status.sin-asignar{color:var(--g4);background:var(--g2)}
+
+/* Zona IDs */
+.drive-zona{padding:10px 14px 12px;border-top:1px solid var(--g2);background:var(--g1);flex-shrink:0}
+.drive-label{font-size:10px;font-weight:700;color:var(--g6);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px}
+.drive-row{display:flex;gap:8px;margin-bottom:4px}
+#drive-ids{flex:1;padding:8px 10px;border:1.5px solid var(--g2);border-radius:var(--rs);font-size:11px;outline:none;font-family:monospace;height:60px;resize:none;transition:.2s;color:var(--g6)}
+#drive-ids:focus{border-color:var(--b4)}
+.drive-btn{padding:8px 14px;background:var(--b4);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;align-self:flex-end;min-height:34px;transition:.15s}
+.drive-btn:hover{background:var(--b5)}
+.drive-hint{font-size:10px;color:var(--g4)}
+
+/* ── PANEL ESTABLECIMIENTOS ── */
+.panel-est{display:flex;flex-direction:column;overflow:hidden;background:#fff}
+.est-header{padding:10px 14px;border-bottom:1px solid var(--g2);background:var(--g1);flex-shrink:0}
+.est-header-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--b9);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.search-input{width:100%;padding:9px 12px;border:1.5px solid var(--g2);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:.2s;background:#fff}
+.search-input:focus{border-color:var(--b4);box-shadow:0 0 0 2px rgba(37,99,235,.1)}
+
+.est-list{flex:1;overflow-y:auto;padding:6px;-webkit-overflow-scrolling:touch}
+.est-list::-webkit-scrollbar{width:4px}
+.est-list::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+
+/* Separadores de sección */
+.est-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g4);padding:8px 10px 3px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.est-section-label::after{content:'';flex:1;height:1px;background:var(--g2)}
+.est-section-label.completadas{color:var(--green)}
+
+.est-item{
+  padding:9px 10px;border:1.5px solid var(--g2);border-radius:9px;
+  margin-bottom:5px;cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;gap:9px;background:#fff;
+  position:relative;
+}
+.est-item:hover{border-color:var(--b4);background:var(--b0);transform:translateX(2px)}
+.est-item.tiene-foto{border-left:3px solid var(--green)}
+.est-item.seleccionado{border-color:var(--b4);background:#dbeafe;box-shadow:0 0 0 2px rgba(37,99,235,.2)}
+.est-item.seleccionado::before{content:'▶';position:absolute;left:-18px;color:var(--b4);font-size:10px}
+.est-thumb{width:42px;height:42px;border-radius:7px;object-fit:cover;border:1px solid var(--g2);flex-shrink:0;background:var(--g1)}
+.est-thumb-empty{width:42px;height:42px;border-radius:7px;background:var(--g1);border:1.5px dashed var(--g2);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--g4);font-size:17px}
+.est-info{flex:1;min-width:0}
+.est-nombre{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--b9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.est-detalle{font-size:10px;color:var(--g4);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.est-codigo{font-size:10px;color:var(--b4);font-weight:700;background:var(--b0);padding:2px 6px;border-radius:10px;white-space:nowrap;flex-shrink:0}
+
+/* Botón asignar — solo en hover o cuando está seleccionado */
+.asignar-btn{
+  padding:6px 10px;
+  background:linear-gradient(135deg,var(--green),var(--gdark));
+  color:#fff;border:none;border-radius:var(--rs);
+  font-size:11px;font-weight:700;cursor:pointer;
+  white-space:nowrap;transition:.15s;flex-shrink:0;min-height:30px;
+  opacity:0;pointer-events:none;
+}
+.est-item:hover .asignar-btn,
+.est-item.seleccionado .asignar-btn{opacity:1;pointer-events:auto}
+.asignar-btn:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(22,163,74,.35)}
+
+/* ── UTILIDADES ── */
+.ldr{text-align:center;padding:28px 16px;color:var(--g4);font-size:13px}
+.sp{display:inline-block;width:14px;height:14px;border:2px solid var(--g2);border-top-color:var(--b4);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);padding:10px 20px;border-radius:var(--rs);font-size:13px;font-weight:600;z-index:9999;display:block;opacity:0;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.15);transition:all .25s cubic-bezier(.32,.72,0,1);white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.ok{background:var(--glight);color:#166534;border:1px solid #bbf7d0}
+#toast.err{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+#toast.info{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe}
+
+/* ── MODAL FOTO AMPLIADA ── */
+#modal-foto{display:none;position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.85);align-items:center;justify-content:center;cursor:zoom-out}
+#modal-foto.open{display:flex}
+#modal-foto img{max-width:92vw;max-height:90vh;object-fit:contain;border-radius:8px}
+
+/* ── TAB BAR (móvil) ── */
+.tab-bar{display:none}
+
+/* ── RESPONSIVE ── */
+@media(max-width:899px){
+  .main{grid-template-columns:1fr;position:relative}
+  .panel-fotos,.panel-est{position:absolute;inset:0;border-right:none;padding-bottom:58px}
+  .panel-fotos.hidden,.panel-est.hidden{display:none}
+  .tab-bar{
+    display:flex;position:fixed;bottom:0;left:0;right:0;
+    background:#fff;border-top:1px solid var(--g2);z-index:200;
+    box-shadow:0 -2px 12px rgba(0,0,0,.1);
+  }
+  .tab-btn{
+    flex:1;padding:9px 8px 11px;background:none;border:none;cursor:pointer;
+    font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:var(--g4);
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+    border-top:2px solid transparent;transition:.15s;
+  }
+  .tab-btn.active{color:var(--b4);border-top-color:var(--b4)}
+  .tab-btn svg{width:20px;height:20px}
+  .htitle{display:none}
+  .asignar-btn{opacity:1!important;pointer-events:auto!important}
+}
+@media(max-width:479px){
+  :root{--hh:48px}
+  header{padding:0 12px}
+  .hlogo img{height:24px}
+  .hlogo-text{font-size:15px}
+  .hprog{font-size:10px;padding:2px 8px}
+  .lbox{padding:28px 20px 22px}
+}
+@media(min-width:1280px){
+  .est-item{padding:10px 12px}
+  .est-thumb,.est-thumb-empty{width:46px;height:46px}
+  .est-nombre{font-size:13px}
+}
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="lbox">
+    <div class="llogo">
+      <img src="https://raw.githubusercontent.com/sitomateo2006-hub/IslaPoint/main/logo.jpg" alt="IslaPoint"/>
+      <span class="llogo-text">Isla<span>Point</span></span>
+    </div>
+    <div class="lsub-wrap"><span class="lsub">Gestor de Fotos</span></div>
+    <div class="lf">
+      <label>Contraseña de administrador</label>
+      <input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="lbtn" id="l-btn" onclick="doLogin()">Entrar</button>
+    <div class="lerr" id="l-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="hlogo">
+      <img src="https://raw.githubusercontent.com/sitomateo2006-hub/IslaPoint/main/logo.jpg" alt="IslaPoint"/>
+      <span class="hlogo-text">Isla<span>Point</span></span>
+    </div>
+    <span class="htitle">Gestor de Fotos</span>
+    <div class="hright">
+      <span class="hprog" id="h-prog">Cargando…</span>
+      <button class="hout" onclick="doLogout()">Salir</button>
+    </div>
+  </header>
+  <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+
+  <div class="main">
+
+    <!-- PANEL FOTOS -->
+    <div class="panel-fotos" id="panel-fotos">
+      <div class="panel-header">
+        <div class="panel-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Fotos de fachadas
+        </div>
+        <div class="foto-nav">
+          <button class="nav-btn" id="btn-prev" onclick="navFoto(-1)" disabled>← Ant.</button>
+          <span class="foto-counter" id="foto-counter">Sin fotos</span>
+          <button class="nav-btn" id="btn-next" onclick="navFoto(1)" disabled>Sig. →</button>
+        </div>
+      </div>
+
+      <div class="foto-display" id="foto-display">
+        <div class="foto-cargando" id="foto-placeholder">
+          <div style="text-align:center">
+            <div style="font-size:40px;margin-bottom:8px">📷</div>
+            <div style="font-size:12px;color:var(--g4)">Las fotos se cargarán<br>al iniciar sesión</div>
+          </div>
+        </div>
+        <img id="foto-img" src="" alt="" style="display:none" onclick="abrirModal(this.src)"/>
+        <div class="foto-nombre" id="foto-nombre"></div>
+        <div class="foto-status sin-asignar" id="foto-status"></div>
+      </div>
+
+      <div class="drive-zona">
+        <label class="drive-label">IDs de Google Drive — 266 fotos precargadas ✅</label>
+        <div class="drive-row">
+          <textarea id="drive-ids" spellcheck="false"></textarea>
+          <button class="drive-btn" onclick="cargarFotos()">↺ Recargar</button>
+        </div>
+        <div class="drive-hint">💡 Haz clic en la foto para ampliarla · Añade IDs 267–351 cuando estén disponibles</div>
+      </div>
+    </div>
+
+    <!-- PANEL ESTABLECIMIENTOS -->
+    <div class="panel-est" id="panel-est">
+      <div class="est-header">
+        <div class="est-header-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Establecimientos
+        </div>
+        <input type="text" class="search-input" id="est-search"
+          placeholder="🔍 Buscar por nombre, calle o código…"
+          oninput="filtrarEst()" autocomplete="off"/>
+      </div>
+      <div class="est-list" id="est-list">
+        <div class="ldr"><span class="sp"></span>Esperando login…</div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+
+  <!-- Tab bar móvil -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-fotos" onclick="switchTab('fotos')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Fotos
+    </button>
+    <button class="tab-btn" id="tab-est" onclick="switchTab('est')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Establecimientos
+    </button>
+  </div>
+</div>
+
+<!-- Modal foto ampliada -->
+<div id="modal-foto" onclick="cerrarModal()">
+  <img id="modal-img" src="" alt=""/>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ── CONFIG ── */
+const URL_SB      = 'https://qqsmojwgkgcemhvjcwgx.supabase.co';
+const KEY_SB      = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxc21vandna2djZW1odmpjd2d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2OTgyODMsImV4cCI6MjA5NTI3NDI4M30.lGrIWt3w8CRtWCkRPFCDjgbP4GhS2m-1X6l26IKqbA8';
+const ADMIN_EMAIL = 'adminislapoint@gmail.com';
+const TABLE       = 'IslaPoint';
+
+/* ── ESTADO ── */
+let SESSION=null, allEst=[], filtrados=[], fotos=[], fotoIdx=0, codigoActual=null;
+
+/* ── IDs GOOGLE DRIVE PRECARGADOS (fotos 1–266 en orden) ── */
+const IDS = [
+'1eNWVtpcCU6hB2znq12o2tnUkothd0Mj5','1vfQT6oTL6-zEGdN7TT8LzmkJQi_poHRH',
+'1YdAVweUA_LnCgaCGTjF9MARUOkQ0agxp','1WEFRQXXARhJ3LAWOLB1DCuaWA7urOG3v',
+'1EZWD373DLo1ilzK7IIQzDzp-yWr_694I','11mGM-rnYCzYsSDMKnEYJnf5mXvyWJL9l',
+'1gwb0D1M5pxtugKZS09ud7knVHPjuXxfp','17QpPEnTPAgVFDA79_blbmgNX6ggREmtn',
+'15FkSzwNzAAluFcGbFYjI3W328QSluZYW','18PAnfC8CeS-DBE7jpRqTfuB3azqaKhjA',
+'1ELu-cxtKmUXqXQyO_y5erR2-7J8GmXo9','1W1zpfBNixibL-7utDRdsv2JkUwa7mImk',
+'1KDp3-Zikkax4gIedXTGNqz5E0wOWTOKY','1GuM4OfO1UmHdL89-lBamUZPsmakLPbUN',
+'1yMF6Siz5HPNDgyOt5ACz3-pXZdj3R1p-','1Uy4bwEGHxEXsmdcYPdnp63aelz7n9T5t',
+'1b7PYPs92o-Pg3qvFkoNKqOlUFoojMoNJ','1E3kamTJgzKB0hHAuNw_h764S5aWzwmkC',
+'1L95g1wkcv299pqoKA15gmIP1-Mbw3xAd','10HAtvxv-4XPJ-zGd0V_8kw9d65ZS1BAt',
+'11itn5csAv5hu5pen2vVrDdKEuU-Jmc9D','1OFiMwIxRTHkDnw11R9S9h1Jsksv_0Fnk',
+'1aQnWMn3WzxhUJJYQx4Rtpuqu311bVAe4','1gRphhois3Q_-uuwtivj3m4AGZdNTlsi6',
+'10PGOuHvqYO9E_LkJamyIiSNlBDU8Ux3n','1LM5m3r3XLYPAaSmIGclVzOWFRn2ZJj0f',
+'1NdVDaLXXI5iRyN7G1ZeG_yVubydlPxjo','12fy0bUAutZu8zKaxmOESL2-O52QD_sZ-',
+'1V26jTNSVt090MHzTRjAGTqslTu77jTJD','1_LzVZ1_PWU9MdEU0DuugiuoY2KWP-TXE',
+'16Kt3PYaye3cdXyyIEAvjuYhsgJJJ2Ba9','1Os68A4kXaWABkZgnxVFyV-Gb5Rb5Ln_D',
+'1ZTMSrcBoglJ67B7BFG4nj5mzzQp8exvd','1Kpn2vhgBedcx-qDUy6s-XWMC3R8Ffq5r',
+'1FqXZuQFtaryHbDvwGlvObXFlWuog6Blm','1s7bt9V71kFMjbBwBb58SO1T_rqgLZYgN',
+'1ZOd9ENqCW4FUNjOTRDYxYzNkKSF871hy','1pAzWjXdMD9INGuaUq3jMu_3bYucBi6sX',
+'1C9fnReMyBsb9BChJDcGAVrk0ei7G32BV','16wT7Qlpf-W6FeqdULY9kj1_bBv9FfKUG',
+'1D4hGAxtOyej3mfD1Qmq9P8LbSbZJiLd0','1Zm5WZYoWNTJERUjILQ08v_OLLiOFvKTQ',
+'1AULV_UaUlzuFGzob-TU0RzbdmegTOEj1','17w2fEsTK7YRLCV3hMSsBU8ccR6Wm9ysb',
+'1A_hk1SoEtU_f8npnQY7uDfm_YaGor05V','1lBMSyTKqGF74D-l3cjgqYHmZzvfSmNcz',
+'1D3izxEEhXHEMBO2Y9FbQeiv56QTTP6CS','1W2AlM9RwSRPv5Ay_2bIlRoaKEWkXiTXe',
+'1hnmRGuy0RUJIt2w5m2EqlYCpK4AZl6hd','14Ga0NrxICMxul7ZrC12m42Uhgw7tzsPz',
+'10lWnzyKo-s_iULDN7xrX-zbuib25mQgw','1Lq2zvl-X4an74oZQ4yHlWNvCSYXLLNA6',
+'12Q1gl-WD04E_aU5P9ac2prs4KfTPzXlZ','1EZ0YtJdZ-GNHAcifVVjNKf5D5agD5GMI',
+'1g77z9zekrm0yRcbEdYSge2o7ZzgbsXxY','1PIEV285xwLS6d1tiXLpE78KbNBcYAN8f',
+'11gnjmMtjqlPYsH5m7dO2hJdss90S0YQp','1NOrW82Ee-ZjLH2tXK5r277B6CNSdk4Lt',
+'17yYWneEV5QCpYRje7FCZCqFm8DUBIlN6','1TpHzAxIscCEFVbNgo2q20WWPI_En69XQ',
+'1s5feUDMdRWU9fmkC8ULQqy1DWAFvmgwC','1LphZO84IW2ASMl7J9tS2rYSPr8oDbm3k',
+'1KXqBhpm7BTY0nrR_mKd9asfcAFHqqY8b','1rBNEzBr063Op5F2QMizuneTn-_BInNnQ',
+'1N194N8rBUpTUfWoy7TW0ciYl9jdY4tNb','15Fcb7jwepiclUYe-ZLw9JgTaPjinCSmr',
+'1n9kSHK6jqGUmmXBUbTP2FDkr1qrgER2H','1-2Ao6mo8dmdx2SpIniNLY1yKJVFFKvCQ',
+'1d6yQtqyppXeWErpbgnr5KjF17YMXAuiu','16u0j0HXwifze3mm38iQ9mYi98SkKUCvf',
+'1xNMnfm26iOJKQetW0Tl3Z0WPut2pjlWJ','1j0yzfON23OMQmTbYf8Ykssag6x4AJuYJ',
+'1FUqrb87_BqtajDlVVTl8d6WOj6jD2HcQ','1f7atjPWPYs6VKEKPt3ocvl9o7FBLGFfc',
+'1nU_Fis-C7Ulw8y4Witmx2ZAqyCIKD8A-','1Km103I9ipp1ol5_yuV_Q8XQ9aBfZgFqH',
+'1xgh3TcKncQ2vLojl9qhzcx0NMxSCh6Bv','1gVV91OZqRbQb1bxX-VZZ2-yAJwu2-stp',
+'14bj-_nrNRfpvqMhM7Dp90pzWruxvTUYf','1wjYZ4xqa1P8-cRT267ZrxbQlZI_flIGf',
+'1cAjvOdhzmcGoU0khm0U3oPeiAX5Q9pOC','1QwTE8gJYTt1zoK3PXPlqnEYug1LgdUpn',
+'1yAZN9Q7pBkFJkWvWTsgw9jqkAG9-N4nu','1hjrXoNdXlAxr5MFtdH32Z0mjHu7b9FbG',
+'1oBMDr0BfwFNG8dEltXzlkJ3pdOg2P8IR','1CA7hpWdkt3jmiAYrPPf0xZp0IL0vnEVI',
+'1igcDosBHxJYe64e1mYkpWc44R0v2yfoN','1LbBApZa2ozuqrox8KT60n9spUAANWN-o',
+'1qQlkXBqgtILwfN735BbJCceM8yBRtVj0','1dWXjad6Lk4XEB8E_9MJXpPzcIUwn4ZEH',
+'1yhl0YeGtWATr5rk1Wqbzz7Ry7HNNX5I0','17pztre6Oj0kU8ly5sFS6lea9MobEiQwc',
+'18x4cVEhb4skE2daYIAlYhhofdhtN6kHY','1mJoNN_j2xMRbeYw_ve2Es0YpJB7gGRE9',
+'1zD_72aKRMqo0Yif3gpnY5RHA1KAUBhNC','1u7LgFJbllw-6eSrd3gGmu4bQKjgnrSRR',
+'1qGeL8m5NSVgpdysQVJN80y-kaokKmjzg','1fDqEzSqSzehbKnWFGo1tgKx_iDbKn-I_',
+'1D6LO5Qrob4p6GVwF83f0jVE8Dnlct9ka','1oDUQbP-XnP2s28oMY11BBwX6NU4wvjHB',
+'1UWNUcN4p29d9zQ78pbsIe992NVrAAf5T','1JTQjVzJLgAcT2fxri0V5yTNiSpWIBqCx',
+'1UN0323QJ10wL3XPScstdlymg3KZ1qTNK','19eTXmNrzQsyYYI092hXcl7gFbn9V44sR',
+'1KlSrDI1QxCcLPIEqVkAkazGmon6bLM85','1tSBF3efhrZZOWrFcJgr6lh7-uoMYAsAP',
+'1AgFTlp5z205ok3ZztKnZF-PPxNs8KFPd','1qUhJCawrp08RRQ3D4xBpiibdoVHYs8et',
+'117WOwoYLVti8IC8MMFcvGkqbvIbbJT9m','1rbUILyZUrAb7ePhFPXcjB4eGp1Rs5Xdh',
+'12dSbB-w9sDlsAWQQP9sF0HLwh4aIYRea','1FsXDWFyh-8ETbknQehGD_YTeIll6qY4T',
+'1sjN9xoTzoigBjMItHN1pxjzRr8A2E6xM','1dCWxurKcVueeka1uGmrRqwa_dfjsYjhJ',
+'19rtktE9V_Cp8djFh4hSxWyvl926OhB9z','1BcTujLwTT9Ldb6LBevkgj275k6OOcsAw',
+'1gt5cWRJYnlyr_q-0NvxhH_X6Gw9jRw4U','1IL22BzOplAG9WelkwJC0i5YCSc_oDSHT',
+'1TyfgCqUolVS6s6ZFvWP0_ldcgXOYjsit','1fzJVE9ZSLDv_ltOEDy8z6syTlBTKc6gv',
+'1IAp6QHQg2VPupu7NLMUMEBan8N5U2n7n','184sV4JcRyUMajNKfL3Neq7jZvI9c-NJu',
+'1fv4KXAkdAu6mlwG6xwcJvv8WhIrgSzxY','10s2NNNJ1bW9K6AleFeoV73gYLUzC-5yT',
+'1nN5WQIkVwQtWGo1tBAlHMnF0mFc4OOaH','1eELtL_GHLCtFKABMyrMa4PzvWOVP13IU',
+'1SIa-lPu5OzlhR7vmYxFfPSBqvortRw6B','1bAJiNUUSmDTbofVUml2D706vB2KoQjsP',
+'1jcLkXyxZVoTc8PWJPKfvkKIJCsiJn_Tn','1WjvJ2hDRIYhGpdTt5aYULLnJE153nVRz',
+'1YQJ2nYu0AClaVzZC0UoTKJdmmBviaXm1','1qlhjwjbqjRXLegsIXDTaYPVBi2zxnY1V',
+'1kzyINB2KYMQoQPkVgBt2WaO7R9sddFe0','1kRFBTXwP4iohYIjvIrmGRgJRxtpGRVXT',
+'1RKFCkdCxbpypu9tUEgY6L9i6PprnzoLa','1mHV3VV2_ODyirgqq63Pt4fCwA7f37HeS',
+'1NcML9HZvY2Sbp_A-8EJU6hYFPP7Xw685','1Wk95pLArIyJBWZEMoKUHfaw9i58cPpkv',
+'1nlhU3X20kb2k0PydJEp1U2O3pyoh3M7s','1SVY1HugljD0jxv1E7YqLYU5oz921_SOa',
+'1Vy9fagUwuNvXPz5dQOanIwSOADFDU0Kt','19tRJ4-HCBoSEsQXGJI_fy_U0wC3Dy4Wj',
+'1imvQEXAWxgAV_HSlnzlXS-1Q_awgbg86','1cEd3kfYbnOfOdIwLuGdkkUWv-Kuh10TF',
+'1JoKbDh3baVa-3UcDl51NC-1VGh8uEiNH','1jzC0lnC9wquQjubkYB2R6ufpauJzb5xx',
+'1Hv9zhoUC8jw-j35sUSukS5BQLAzeprLL','1yQ-rw0PKvigfZodmU5KclrmPw5QtDEoa',
+'1CPaoop8wXQJKpJevzHvEY9RU2ophPyXO','1aRrg-o1Y8az6g2iGM2PQT3TkI-rdJ3R3',
+'1coCgNhXGraS_hnZlkf4YlLE28cHuL8em','1KwUsftrslxNbXmjYa55vmupBTSlvWCmS',
+'105Si6zNQmIqAnuiipPZhe3kyts1hDuHG','1WfOkvV17hZDnK7cUr1ANG_RSMXHp7jL7',
+'1dI_6HhWxQIJ8YSfELhGfVN7waI-dA2qk','1sBHGpjecd6yNsGjxs83RM16iR0BSfP_t',
+'1KpJL4_JFEHZ9PZI6v0UpEQHMN8w6-INX','100k65eG3cseizeGMw_1v8Om2uK6ASuus',
+'10jTf3JwS6dJPKIt4-VJ2UVb0LDr5BW5w','13nHUoeATjmvvBzVMel-34DggiyFW6ZTT',
+'1mlCUc32GOflPo0eizB4lkopKihz0VH9o','1XqI7LpJDcjA5eMG1upkkBhqgsNxOqIlo',
+'1b_VIZJyJDIzMN0Uq8u78N292S-iHa0Fu','1uHaXOS0AZ3cAnGwhFuniwSl8C8hxFN9t',
+'1N2aNCTPB6HZ7bMxzw913Ys6izHUjEgTd','1IU1JAApQjpp-Q6IAWN2_0hgB6nzS3V8v',
+'1WGeDj3jdAqXDfvELPyXegeyRLwdaoLeM','1JiVzR9Wly3Z1toAKT7C4_wGrhSD_4FF6',
+'1BbPiAX0Cb7-_qdQsZ5rtUBk1BgXfDvqr','1f00rZ3fV-V1eDxCIgfYsXgU5F_d6sw2N',
+'1AXP5j2UcrKRiXEQDez0kSy7y1AEWteYq','19K6_aZnTauVdvnRezCxWqOBdui77G2yd',
+'1ocV3XB_zQ739WNnpXo90WJm_aD92agC3','1Zt-X4rv4VDkGJ6CGKiIluRFsYGZT_M8P',
+'1Qd1Fam56nXjcdBXIWNGQCrntIhNsHuw5','1F-PBFaOsnKxr2HgTWrx-JRqIhuRFzjRS',
+'1Un6wbcnIRjyUxZfcip7tad6LJprh8LZT','1mv1u8y5h4tfR6TJ_Pzc4aZQb3ZV7fuhm',
+'1O0J1Cz5FwjkGbN5dgpMPOPQ3fJFqHZXx','1aTtVLYQYpSC8F005x-d_0xFkrX1BhpqY',
+'1zB5snLOsusbSgrLd_d-e2p9s7I8KWd2p','1tc3tL2g1h9E-uZ34PII9IQbAgffH2Wra',
+'157umh9aAPdxty6kmemQSm9q8GTGazo7U','1nGDjU7y3mYrl0H1ZZb4jzGb1_UXSAWKT',
+'1kDLoG2XaOHHz3nE9NblDymEy03g9Rsju','1eKz7rZ5MB6ZQZzJpTR4wJRr0EHQoJXr2',
+'19xDO5F-cOfbMG_ouloQ-dSDuLDsmdSpP','1rCebo6Im9GpFX3RR78O2sfFs8hht-6KI',
+'1lJte0sU17hj8r1QU5tpnW9WPSztfBNne','1em77v0FvjZB5Ol_C_n8HbSQHiX-eg9VF',
+'19fxSoJn176k4q1JF3rhxPrTKMyChDpxn','1IUTFRbMEm4K0BGTReqq7oulTpqtyIHrz',
+'1EHYK-tubVe56dQKsKrcJeNMHnlANETco','1u3aFQC9063i4Dm6pAIUYQc4cTAWV_ZfX',
+'1QtjONpbSm2WwoPVVrDQmPGw7CYmHet1P','1ZtmL9-SrDEM8uK2g-uViehQdwzPaGwuI',
+'16DntZ7hP0uIdXCz5oDqUXD3z_Wi7fz8c','1SOOkqfmgoAIErM4ERy6vWG5KLQb3J-8P',
+'1Za1aL2ocbKwI9PX_NfULG0H96d0FplHz','15p5YGNrdFzTgvds_nruLXoWoYwgJk12P',
+'1TL2MdFF0wONs6LL2X9srrdcuwhOx5wzg','19ssvcOXYAcB-yqMHUhSdhCPJnx7AGoSy',
+'1rOo8CNIGTMNxyV4GB7YlGJd1eGZVPgzx','16IIsc5CsDZLoq4kHzbf-l42EODBIFJeb',
+'1-sCMqDogPXAqaPan-W_seHQ-SzkTvpWh','1ZWgK78eR5WkLu7zhlZmmGkvmK-OqY5_p',
+'1Mg8Bv9nmlqbYBO_MBuHSyfwqT_49GHKe','1Av_e6Kj1RlA0x_KBHeQq7zvOf4pVbBD4',
+'1R7KdzFdralhgaL2j1cC_CAD8be9rTd2S','1ITB5SDKZ3zA9xtABi4th-ewsYMRs0dFd',
+'1KW4tlIRNxNlq1ib-q12FASyBr7it6XzX','1qTe762DE8nRO8AyvJInJILcef3mHGjWJ',
+'1j2qoMZAnX4WQmCDaPUjbdK6hj_-vvnAI','1jLtRieO2fE0zvBXJUxE4zzRpAGCILIQQ',
+'1nOB9tR9j7sYfqEh_4gMLPgrSuCGlDr5G','1fH0BzQb9ElSNZFG7YIKF-ZWNnBBajERh',
+'1DuavfFtx-XxMgPNBiFuxcSLWSrHMyaGr','15Q3upXw4ABJDSqPfhQEVkDlVwAbATDNZ',
+'1CVJ8yYsjC58eGBJhVThPi-LaPGKzcN4m','1lJGlqW6WazPdx_gB7r73KDbXQTnPqGWO',
+'1F-XGXi3-Vo49BWAr9xaMjfQJuIzy0yE4','1RqyAi7AtyFIpwZZx8cS09j0Uqeag5GRU',
+'1x1JG0_Zi1ROWXmG8x1JxyfbSg2vGWhGh','1osvgQkLM352RBxre1IDNv52Ru7ta2wTd',
+'1AzY5HVzUdg4p74cKpiAawmIMoETxxIGM','17GCH6uha5me1ZVHzycGOky21mDpL6km5',
+'1cVm9Hlw5P1cW1NW9pitTJHNcIcmqq2Vs','13kb_UarkveUR4_6fvx_YCWyUL0CGCpxI',
+'11N13VrIXt6QIAyi3iByNJmDkyYBfKB-b','1ReMbR_1Tfv-L7lXtn3d51mRkgfCUbRLZ',
+'1b_o_s2XhMn3Qu6C2hW8SXYZ73fErgjvJ','1tU2bQ4M4-3fc6Mk5C-Pvk6px823vrkBE',
+'1dq980K_AHNNptpQsla0qwQLy2ZF4Q0cf','1RGftmCPscL729vkR2ARc_tDgOB06MUze',
+'1A6pkr_D4z0N7odP1y19Wo5okvsRkLZTr','1Nse0p5p68bj7VWgH7YC1xl4Ro_tEKB-j',
+'14msmc258A8G1pgq1dRx9AXPEIPg0cBE2','1HkCC-55cKriHjlMvkTX06ruxLA-DoykC',
+'15m51xhgLyApDV9vAUrhKphaAxmFH2reA','1sQgmMfdgOwJIoozUTa01_6xXzt_440R0',
+'17SrfEazBDf1zL9nfJxIdS0x8td2QJPmX','1QbqVb56o6LrJ8ALpcvpKKJILLwalgNuk',
+'1BYZIXrHskeaBlgx6AN3UdKt_zbckJ0dB','1CXHadsBCdqs98_NrlkTpvNPPajCOpF0D',
+'1g47iu0DaZEosfCmHml0w6CXBLuRIXd-Y','1oUSEu7TPdci9yV9ZCY6g5Ia9wKQVFASW',
+'1-lFt9poanJqPZ0uwIJczMXRA2mwrNMnQ','1soIdGCT1exkqj40dowE0huEXxPWvFyv8',
+'1RlQL-ArHi-2Yv5rTsWa2zf4mBee_qTQd','1Hizrx5OPP8yXyWJE9Yvq7v4c43GKNwzi',
+'1E8f3Qg4LDmiPli2sZz1Vytj2LWzTXG-t','19SeHrQJMa4yqafaPUQSjviC1jo934lJF',
+'1c-Dvi4T2Roa--J9WTQKc8F8YzpQwnPaS','112wqpaC8LIQY_8_FHxLJaDlYx5Lpb3hm',
+'1Rwv0WCBuWSc53DDSFkbcJq_TWuP0Iy29','1LF2SJ1-VyqptJu03JWMO1U5jSmyUi_YP',
+'1u522nYeauTPknV5SuFtt9frre3YlErZQ','1wcqdXCljir_fZdN-aXaHlCTnq5baduMN',
+'1k3RuXezTS1vn4ym5Rtie29naHSFm27US','1apvc6LANTDmZJSNUncmY23MEXV5RE0Ce',
+'1_YUY3MpoyJXfbPG59YA61_ktcu6i4wsD','1j9uWhMlo0qJE7rH2VORQF7N8osqN9B_r',
+'1PB33hEKwtIQnjTsr6RFRFCWITe1w-rF1','1VPKb0lJty2y4savHsuKM4bn8VqwLzhhR',
+'1VFKAH9P6ZbcH2V-5Gy9PoosB05qZO9Pe','1f6Um6lLpNzyXEpRbVJGU9ydPQoXcKgoN'
+];
+
+/* ── HELPERS ── */
+function hdrs(t){
+  return{'apikey':KEY_SB,'Authorization':'Bearer '+(t||KEY_SB),'Content-Type':'application/json','Prefer':'return=representation'};
+}
+
+// URL de imagen que funciona con Drive (thumbnail público)
+function driveUrl(id){
+  return `https://drive.google.com/thumbnail?id=${id}&sz=w1200`;
+}
+
+let toastTimer=null;
+function toast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className=type;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+/* ── TABS MÓVIL ── */
+function switchTab(tab){
+  const pf=document.getElementById('panel-fotos');
+  const pe=document.getElementById('panel-est');
+  document.getElementById('tab-fotos').classList.toggle('active',tab==='fotos');
+  document.getElementById('tab-est').classList.toggle('active',tab==='est');
+  pf.classList.toggle('hidden',tab!=='fotos');
+  pe.classList.toggle('hidden',tab!=='est');
+}
+
+/* ── MODAL FOTO AMPLIADA ── */
+function abrirModal(src){
+  document.getElementById('modal-img').src=src;
+  document.getElementById('modal-foto').classList.add('open');
+}
+function cerrarModal(){
+  document.getElementById('modal-foto').classList.remove('open');
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') cerrarModal();
+  if(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA') return;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown') navFoto(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp') navFoto(-1);
+});
+
+/* ── LOGIN / LOGOUT ── */
+async function doLogin(){
+  const pass=document.getElementById('l-pass').value.trim();
+  const btn=document.getElementById('l-btn');
+  const err=document.getElementById('l-err');
+  if(!pass){err.textContent='Introduce la contraseña';err.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Entrando…';err.style.display='none';
+  try{
+    const res=await fetch(`${URL_SB}/auth/v1/token?grant_type=password`,{
+      method:'POST',
+      headers:{'apikey':KEY_SB,'Content-Type':'application/json'},
+      body:JSON.stringify({email:ADMIN_EMAIL,password:pass})
+    });
+    const data=await res.json();
+    if(!res.ok) throw new Error('Contraseña incorrecta');
+    SESSION=data;
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    iniciar();
+  }catch(e){err.textContent=e.message;err.style.display='block';}
+  finally{btn.disabled=false;btn.textContent='Entrar';}
+}
+
+function doLogout(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('l-pass').value='';
+  SESSION=null;allEst=[];filtrados=[];fotos=[];fotoIdx=0;codigoActual=null;
+}
+
+/* ── INICIO (después de login) ── */
+function iniciar(){
+  // Rellenar textarea con IDs
+  document.getElementById('drive-ids').value=IDS.join('\n');
+  // Construir lista de fotos
+  fotos=IDS.map((id,i)=>({num:i+1,id,url:driveUrl(id)}));
+  fotoIdx=0;
+  mostrarFoto();
+  // Cargar establecimientos
+  loadEst();
+}
+
+/* ── RECARGAR FOTOS desde textarea (por si se añaden IDs 267-351) ── */
+function cargarFotos(){
+  const raw=document.getElementById('drive-ids').value.trim();
+  if(!raw){toast('No hay IDs en el textarea','err');return;}
+  const ids=raw.split(/[\n,;\s]+/).map(s=>s.trim()).filter(s=>s.length>15);
+  if(!ids.length){toast('No se encontraron IDs válidos (mínimo 16 caracteres)','err');return;}
+  fotos=ids.map((id,i)=>({num:i+1,id,url:driveUrl(id)}));
+  fotoIdx=0;
+  mostrarFoto();
+  toast(`✅ ${fotos.length} fotos cargadas`);
+}
+
+/* ── MOSTRAR FOTO ACTUAL ── */
+function mostrarFoto(){
+  if(!fotos.length) return;
+  const foto=fotos[fotoIdx];
+  const img=document.getElementById('foto-img');
+  const placeholder=document.getElementById('foto-placeholder');
+  const status=document.getElementById('foto-status');
+
+  // Mostrar loader mientras carga
+  img.style.display='none';
+  placeholder.style.display='flex';
+  placeholder.innerHTML='<div class="sp"></div><span>Cargando foto…</span>';
+
+  img.onload=()=>{
+    placeholder.style.display='none';
+    img.style.display='block';
+  };
+  img.onerror=()=>{
+    placeholder.innerHTML='<div style="text-align:center"><div style="font-size:32px">⚠️</div><div style="font-size:11px;margin-top:4px;color:var(--g4)">No se pudo cargar la imagen<br>Puede que Drive requiera permiso público</div></div>';
+    img.style.display='none';
+  };
+  img.src=foto.url;
+
+  document.getElementById('foto-nombre').textContent=`Foto ${foto.num} / ${fotos.length} — ID: ${foto.id.slice(0,12)}…`;
+  document.getElementById('foto-counter').textContent=`${fotoIdx+1} / ${fotos.length}`;
+  document.getElementById('btn-prev').disabled=fotoIdx===0;
+  document.getElementById('btn-next').disabled=fotoIdx===fotos.length-1;
+
+  // Estado asignación
+  const asignada=allEst.find(e=>e['Foto-URL']&&e['Foto-URL'].includes(foto.id));
+  if(asignada){
+    status.textContent=`✅ Asignada a: ${asignada.Nombre} (#${asignada.Codigo})`;
+    status.className='foto-status asignada';
+  }else{
+    status.textContent='Sin asignar — haz clic en un establecimiento →';
+    status.className='foto-status sin-asignar';
+  }
+}
+
+function navFoto(dir){
+  fotoIdx=Math.max(0,Math.min(fotos.length-1,fotoIdx+dir));
+  mostrarFoto();
+}
+
+/* ── CARGAR ESTABLECIMIENTOS ── */
+async function loadEst(){
+  document.getElementById('est-list').innerHTML='<div class="ldr"><span class="sp"></span>Cargando establecimientos…</div>';
+  try{
+    let all=[],from=0;
+    while(true){
+      const res=await fetch(
+        `${URL_SB}/rest/v1/${TABLE}?select=Codigo,Nombre,Calle,N%C3%BAmero,Actividad,Foto-URL&order=Codigo.asc&offset=${from}&limit=1000`,
+        {headers:hdrs(SESSION?.access_token)}
+      );
+      if(!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      const batch=await res.json();
+      if(!Array.isArray(batch)||!batch.length) break;
+      all=all.concat(batch);
+      if(batch.length<1000) break;
+      from+=1000;
+    }
+    allEst=all;
+    filtrados=[...allEst];
+    const primerPendiente=allEst.filter(e=>!e['Foto-URL']).sort((a,b)=>a.Codigo-b.Codigo)[0];
+    codigoActual=primerPendiente?.Codigo||null;
+    renderEst();
+    actualizarProgreso();
+    toast(`📋 ${allEst.length} establecimientos cargados`,'info');
+  }catch(e){
+    document.getElementById('est-list').innerHTML=`<div class="ldr" style="color:var(--red)">❌ Error: ${e.message}</div>`;
+    toast('Error cargando establecimientos','err');
+  }
+}
+
+function actualizarProgreso(){
+  const con=allEst.filter(e=>e['Foto-URL']).length;
+  const total=allEst.length;
+  const pct=total?Math.round(con/total*100):0;
+  document.getElementById('h-prog').textContent=`${con}/${total} · ${pct}%`;
+  document.getElementById('prog-fill').style.width=pct+'%';
+}
+
+/* ── RENDER LISTA ── */
+function renderEst(){
+  const list=document.getElementById('est-list');
+  if(!filtrados.length){list.innerHTML='<div class="ldr">Sin resultados</div>';return;}
+
+  const q=document.getElementById('est-search').value.trim();
+  let html='';
+
+  if(q){
+    // Con búsqueda: lista plana ordenada por Codigo
+    const sorted=[...filtrados].sort((a,b)=>a.Codigo-b.Codigo);
+    html=sorted.map(it=>itemHTML(it)).join('');
+  }else{
+    // Sin búsqueda: pendientes primero, luego completados
+    const sin=[...filtrados].filter(e=>!e['Foto-URL']).sort((a,b)=>a.Codigo-b.Codigo);
+    const con=[...filtrados].filter(e=>e['Foto-URL']).sort((a,b)=>a.Codigo-b.Codigo);
+    if(sin.length){
+      html+=`<div class="est-section-label">📷 Pendientes — ${sin.length}</div>`;
+      html+=sin.map(it=>itemHTML(it)).join('');
+    }
+    if(con.length){
+      html+=`<div class="est-section-label completadas">✅ Con foto — ${con.length}</div>`;
+      html+=con.map(it=>itemHTML(it)).join('');
+    }
+  }
+  list.innerHTML=html;
+
+  // Scroll al activo
+  if(codigoActual){
+    const el=list.querySelector(`.est-item[data-id="${codigoActual}"]`);
+    if(el) setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'center'}),100);
+  }
+}
+
+function itemHTML(it){
+  const dir=[it.Calle,it['Número']].filter(Boolean).join(' nº ');
+  const conFoto=!!it['Foto-URL'];
+  const activo=String(it.Codigo)===String(codigoActual);
+  const thumb=conFoto
+    ?`<img class="est-thumb" src="${it['Foto-URL']}" alt="" loading="lazy" onerror="this.style.display='none'">`
+    :`<div class="est-thumb-empty">🏪</div>`;
+  return `<div class="est-item${conFoto?' tiene-foto':''}${activo?' seleccionado':''}"
+    data-id="${it.Codigo}"
+    onclick="seleccionarEst(${it.Codigo})">
+    ${thumb}
+    <div class="est-info">
+      <div class="est-nombre">${it.Nombre||'Sin nombre'}</div>
+      <div class="est-detalle">${dir||'Sin dirección'}${it.Actividad?' · '+it.Actividad:''}</div>
+    </div>
+    <span class="est-codigo">#${it.Codigo}</span>
+    <button class="asignar-btn" onclick="event.stopPropagation();asignarFoto(${it.Codigo})">
+      ${conFoto?'🔄 Cambiar':'📷 Asignar'}
+    </button>
+  </div>`;
+}
+
+/* ── SELECCIONAR (solo resaltar, sin asignar) ── */
+function seleccionarEst(codigo){
+  codigoActual=codigo;
+  renderEst();
+  // En móvil, ir al panel de fotos para confirmar visualmente
+  if(window.innerWidth<900) switchTab('fotos');
+}
+
+/* ── FILTRAR ── */
+function filtrarEst(){
+  const q=document.getElementById('est-search').value.toLowerCase().trim();
+  filtrados=!q?[...allEst]:allEst.filter(e=>
+    (e.Nombre||'').toLowerCase().includes(q)||
+    (e.Calle||'').toLowerCase().includes(q)||
+    String(e.Codigo).includes(q)||
+    (e.Actividad||'').toLowerCase().includes(q)
+  );
+  renderEst();
+}
+
+/* ── ASIGNAR FOTO → SUPABASE ── */
+async function asignarFoto(codigo){
+  if(!fotos.length){toast('Primero carga las fotos','err');return;}
+  const foto=fotos[fotoIdx];
+  const est=allEst.find(e=>String(e.Codigo)===String(codigo));
+
+  try{
+    const res=await fetch(`${URL_SB}/rest/v1/${TABLE}?Codigo=eq.${codigo}`,{
+      method:'PATCH',
+      headers:hdrs(SESSION?.access_token),
+      body:JSON.stringify({'Foto-URL':foto.url})
+    });
+    if(!res.ok){
+      const txt=await res.text();
+      throw new Error(txt||`HTTP ${res.status}`);
+    }
+
+    // Actualizar local
+    if(est) est['Foto-URL']=foto.url;
+    toast(`✅ Foto ${foto.num} → ${est?.Nombre||'#'+codigo}`);
+
+    // Siguiente pendiente automáticamente
+    const siguientes=allEst.filter(e=>!e['Foto-URL']).sort((a,b)=>a.Codigo-b.Codigo);
+    codigoActual=siguientes[0]?.Codigo||null;
+
+    renderEst();
+    actualizarProgreso();
+
+    // Avanzar a la siguiente foto de Drive
+    setTimeout(()=>{
+      navFoto(1);
+      // En móvil, volver a fotos para ver la siguiente
+      if(window.innerWidth<900) switchTab('fotos');
+    },400);
+
+  }catch(e){
+    console.error('Error asignando foto:',e);
+    toast(`Error: ${e.message}`,'err');
+  }
+}
+</script>
+</body>
+</html>
