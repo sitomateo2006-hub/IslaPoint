@@ -208,18 +208,30 @@ let fotoFitMode=false;
 function setPosV(pos){
   const img=document.getElementById('foto-img');
   if(!img) return;
-  // Desactivar modo fit si estaba activo
   fotoFitMode=false;
-  img.classList.remove('fit-full');
   img.style.objectFit='cover';
-  const posMap={top:'center 15%', center:'center 50%', bottom:'center 85%'};
-  img.style.objectPosition=posMap[pos]||'center 50%';
-  // Actualizar botones activos
+  const posMap={top:'center 15%', center:'center 60%', bottom:'center 85%'};
+  img.style.objectPosition=posMap[pos]||'center 60%';
   document.querySelectorAll('.pos-btn').forEach(b=>b.classList.remove('active'));
   const map={top:0,center:1,bottom:2};
   const btns=document.querySelectorAll('.pos-btn');
   if(map[pos]!==undefined) btns[map[pos]].classList.add('active');
   document.getElementById('pos-btn-fit').classList.remove('active');
+}
+
+function _activarBotonPos(posStr){
+  // Encuentra el botón cuyo data-pos coincide o es el más cercano
+  const val=parseInt(posStr)||60;
+  const btns=[...document.querySelectorAll('.pos-btn[data-pos]')];
+  if(!btns.length) return;
+  btns.forEach(b=>b.classList.remove('active'));
+  document.getElementById('pos-btn-fit')?.classList.remove('active');
+  // El más cercano al valor
+  const closest=btns.reduce((a,b)=>Math.abs(parseInt(b.dataset.pos)-val)<Math.abs(parseInt(a.dataset.pos)-val)?b:a);
+  closest.classList.add('active');
+  // Aplicar a la imagen
+  const img=document.getElementById('foto-img');
+  if(img){ img.style.objectFit='cover'; img.style.objectPosition=`center ${val}%`; }
 }
 
 function toggleFit(){
@@ -338,9 +350,9 @@ function toggleFit(){
         <!-- Barra de ajuste de posición -->
         <div class="foto-pos-bar">
           <span class="foto-pos-label">📐 Ver zona:</span>
-          <button class="pos-btn" onclick="setPosV('top')">⬆ Arriba</button>
-          <button class="pos-btn active" id="pos-btn-mid" onclick="setPosV('center')">▣ Centro</button>
-          <button class="pos-btn" onclick="setPosV('bottom')">⬇ Abajo</button>
+          <button class="pos-btn" data-pos="15" onclick="setPosV('top')">⬆ Arriba</button>
+          <button class="pos-btn active" data-pos="60" id="pos-btn-mid" onclick="setPosV('center')">▣ Centro</button>
+          <button class="pos-btn" data-pos="85" onclick="setPosV('bottom')">⬇ Abajo</button>
           <div class="pos-sep"></div>
           <button class="pos-btn" id="pos-btn-fit" onclick="toggleFit()">⛶ Completa</button>
         </div>
@@ -597,18 +609,30 @@ let fotoFitMode=false;
 function setPosV(pos){
   const img=document.getElementById('foto-img');
   if(!img) return;
-  // Desactivar modo fit si estaba activo
   fotoFitMode=false;
-  img.classList.remove('fit-full');
   img.style.objectFit='cover';
-  const posMap={top:'center 15%', center:'center 50%', bottom:'center 85%'};
-  img.style.objectPosition=posMap[pos]||'center 50%';
-  // Actualizar botones activos
+  const posMap={top:'center 15%', center:'center 60%', bottom:'center 85%'};
+  img.style.objectPosition=posMap[pos]||'center 60%';
   document.querySelectorAll('.pos-btn').forEach(b=>b.classList.remove('active'));
   const map={top:0,center:1,bottom:2};
   const btns=document.querySelectorAll('.pos-btn');
   if(map[pos]!==undefined) btns[map[pos]].classList.add('active');
   document.getElementById('pos-btn-fit').classList.remove('active');
+}
+
+function _activarBotonPos(posStr){
+  // Encuentra el botón cuyo data-pos coincide o es el más cercano
+  const val=parseInt(posStr)||60;
+  const btns=[...document.querySelectorAll('.pos-btn[data-pos]')];
+  if(!btns.length) return;
+  btns.forEach(b=>b.classList.remove('active'));
+  document.getElementById('pos-btn-fit')?.classList.remove('active');
+  // El más cercano al valor
+  const closest=btns.reduce((a,b)=>Math.abs(parseInt(b.dataset.pos)-val)<Math.abs(parseInt(a.dataset.pos)-val)?b:a);
+  closest.classList.add('active');
+  // Aplicar a la imagen
+  const img=document.getElementById('foto-img');
+  if(img){ img.style.objectFit='cover'; img.style.objectPosition=`center ${val}%`; }
 }
 
 function toggleFit(){
@@ -729,10 +753,15 @@ function mostrarFoto(){
   // Estado asignación
   const asignada=allEst.find(e=>e['Foto-URL']&&e['Foto-URL'].includes(foto.id));
   if(asignada){
-    status.textContent=`✅ Asignada a: ${asignada.Nombre} (#${asignada.Codigo})`;
+    // Leer pos guardada en la URL
+    const urlParams=new URLSearchParams(asignada['Foto-URL']?.split('?')[1]||'');
+    const posGuardada=urlParams.get('pos')||'60';
+    status.textContent=`✅ Asignada a: ${asignada.Nombre} (#${asignada.Codigo}) · pos ${posGuardada}%`;
     status.className='foto-status asignada';
+    // Restaurar botón activo según pos guardada
+    _activarBotonPos(posGuardada);
   }else{
-    status.textContent='Sin asignar — haz clic en un establecimiento →';
+    status.textContent='Sin asignar — ajusta posición y haz clic →';
     status.className='foto-status sin-asignar';
   }
 }
@@ -880,10 +909,14 @@ async function asignarFoto(codigo){
   const est=allEst.find(e=>String(e.Codigo)===String(codigo));
 
   try{
+    // Leer posición actual del slider (0-100), default 60
+    const posVal=document.querySelector('.pos-btn.active[data-pos]')?.dataset.pos||'60';
+    const urlConPos=foto.url+'&pos='+posVal;
+
     const res=await fetch(`${URL_SB}/rest/v1/${TABLE}?Codigo=eq.${codigo}`,{
       method:'PATCH',
       headers:hdrs(),
-      body:JSON.stringify({'Foto-URL':foto.url})
+      body:JSON.stringify({'Foto-URL':urlConPos})
     });
     if(!res.ok){
       const txt=await res.text();
