@@ -68,37 +68,61 @@ header{background:linear-gradient(135deg,var(--b9),var(--b8) 60%,var(--b7));heig
 .foto-counter{font-size:13px;color:var(--g6);flex:1;text-align:center;font-weight:500}
 
 /* Zona imagen */
-/* Zona foto — ocupa todo el espacio disponible */
+/* Zona foto */
 .foto-display{
   flex:1;min-height:0;
   position:relative;
-  background:#f0f4f8;
+  background:#1a1a2e;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+}
+/* Imagen: ocupa todo el área de visualización */
+.foto-img-wrap{
+  flex:1;min-height:0;
+  position:relative;
   overflow:hidden;
 }
-/* La imagen llena el contenedor manteniendo proporción */
 .foto-display img{
   position:absolute;
   inset:0;
   width:100%;
   height:100%;
-  object-fit:contain;
-  object-position:center center;
+  object-fit:cover;
+  object-position:center 60%;
   cursor:zoom-in;
-  transition:transform .2s;
+  transition:object-position .25s ease;
 }
-.foto-display img:hover{transform:scale(1.015)}
 /* Loader centrado */
 .foto-cargando{
   position:absolute;inset:0;
   display:flex;align-items:center;justify-content:center;
-  background:#f0f4f8;font-size:13px;color:var(--g4);gap:8px;
+  background:#1a1a2e;font-size:13px;color:var(--g4);gap:8px;
   z-index:2;
 }
-/* Info superpuesta abajo — semitransparente */
+/* Controles de posición — barra encima */
+.foto-pos-bar{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 10px;
+  background:var(--g1);
+  border-bottom:1px solid var(--g2);
+  flex-shrink:0;
+}
+.foto-pos-label{font-size:10px;color:var(--g6);font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.pos-btn{
+  padding:4px 10px;border:1.5px solid var(--g2);border-radius:6px;
+  background:#fff;font-size:11px;font-weight:600;color:var(--g6);
+  cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.pos-btn:hover{border-color:var(--b4);color:var(--b4);background:var(--b0)}
+.pos-btn.active{border-color:var(--b4);background:var(--b4);color:#fff}
+.pos-sep{width:1px;height:16px;background:var(--g2);flex-shrink:0}
+/* Modo fit completo */
+.foto-display img.fit-full{object-fit:contain;object-position:center center}
+/* Info superpuesta abajo */
 .foto-info-bar{
   position:absolute;bottom:0;left:0;right:0;
-  background:linear-gradient(transparent,rgba(10,22,40,.7));
-  padding:20px 12px 8px;
+  background:linear-gradient(transparent,rgba(10,22,40,.75));
+  padding:24px 12px 8px;
   display:flex;align-items:flex-end;justify-content:space-between;
   gap:8px;z-index:1;pointer-events:none;
 }
@@ -177,6 +201,44 @@ header{background:linear-gradient(135deg,var(--b9),var(--b8) 60%,var(--b7));heig
 #toast.ok{background:var(--glight);color:#166534;border:1px solid #bbf7d0}
 #toast.err{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
 #toast.info{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe}
+
+/* ── CONTROLES POSICIÓN FOTO ── */
+let fotoFitMode=false;
+
+function setPosV(pos){
+  const img=document.getElementById('foto-img');
+  if(!img) return;
+  // Desactivar modo fit si estaba activo
+  fotoFitMode=false;
+  img.classList.remove('fit-full');
+  img.style.objectFit='cover';
+  const posMap={top:'center 15%', center:'center 50%', bottom:'center 85%'};
+  img.style.objectPosition=posMap[pos]||'center 50%';
+  // Actualizar botones activos
+  document.querySelectorAll('.pos-btn').forEach(b=>b.classList.remove('active'));
+  const map={top:0,center:1,bottom:2};
+  const btns=document.querySelectorAll('.pos-btn');
+  if(map[pos]!==undefined) btns[map[pos]].classList.add('active');
+  document.getElementById('pos-btn-fit').classList.remove('active');
+}
+
+function toggleFit(){
+  const img=document.getElementById('foto-img');
+  if(!img) return;
+  fotoFitMode=!fotoFitMode;
+  if(fotoFitMode){
+    img.style.objectFit='contain';
+    img.style.objectPosition='center center';
+    document.querySelectorAll('.pos-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('pos-btn-fit').classList.add('active');
+  } else {
+    img.style.objectFit='cover';
+    img.style.objectPosition='center 50%';
+    document.querySelectorAll('.pos-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.pos-btn')[1].classList.add('active');
+    document.getElementById('pos-btn-fit').classList.remove('active');
+  }
+}
 
 /* ── MODAL FOTO AMPLIADA ── */
 #modal-foto{display:none;position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.85);align-items:center;justify-content:center;cursor:zoom-out}
@@ -273,17 +335,28 @@ header{background:linear-gradient(135deg,var(--b9),var(--b8) 60%,var(--b7));heig
       </div>
 
       <div class="foto-display" id="foto-display">
-        <div class="foto-cargando" id="foto-placeholder">
-          <div style="text-align:center">
-            <div style="font-size:40px;margin-bottom:8px">📷</div>
-            <div style="font-size:12px;color:var(--g4)">Las fotos se cargarán<br>al iniciar sesión</div>
-          </div>
+        <!-- Barra de ajuste de posición -->
+        <div class="foto-pos-bar">
+          <span class="foto-pos-label">📐 Ver zona:</span>
+          <button class="pos-btn" onclick="setPosV('top')">⬆ Arriba</button>
+          <button class="pos-btn active" id="pos-btn-mid" onclick="setPosV('center')">▣ Centro</button>
+          <button class="pos-btn" onclick="setPosV('bottom')">⬇ Abajo</button>
+          <div class="pos-sep"></div>
+          <button class="pos-btn" id="pos-btn-fit" onclick="toggleFit()">⛶ Completa</button>
         </div>
-        <img id="foto-img" src="" alt="" style="display:none" onclick="abrirModal(this.src)"/>
-        <!-- Info superpuesta sobre la foto -->
-        <div class="foto-info-bar">
-          <div class="foto-nombre" id="foto-nombre"></div>
-          <div class="foto-status sin-asignar" id="foto-status"></div>
+        <!-- Imagen -->
+        <div class="foto-img-wrap">
+          <div class="foto-cargando" id="foto-placeholder">
+            <div style="text-align:center">
+              <div style="font-size:40px;margin-bottom:8px">📷</div>
+              <div style="font-size:12px;color:var(--g4)">Las fotos se cargarán<br>al iniciar sesión</div>
+            </div>
+          </div>
+          <img id="foto-img" src="" alt="" style="display:none" onclick="abrirModal(this.src)"/>
+          <div class="foto-info-bar">
+            <div class="foto-nombre" id="foto-nombre"></div>
+            <div class="foto-status sin-asignar" id="foto-status"></div>
+          </div>
         </div>
       </div>
 
@@ -516,6 +589,44 @@ function switchTab(tab){
   document.getElementById('tab-est').classList.toggle('active',tab==='est');
   pf.classList.toggle('hidden',tab!=='fotos');
   pe.classList.toggle('hidden',tab!=='est');
+}
+
+/* ── CONTROLES POSICIÓN FOTO ── */
+let fotoFitMode=false;
+
+function setPosV(pos){
+  const img=document.getElementById('foto-img');
+  if(!img) return;
+  // Desactivar modo fit si estaba activo
+  fotoFitMode=false;
+  img.classList.remove('fit-full');
+  img.style.objectFit='cover';
+  const posMap={top:'center 15%', center:'center 50%', bottom:'center 85%'};
+  img.style.objectPosition=posMap[pos]||'center 50%';
+  // Actualizar botones activos
+  document.querySelectorAll('.pos-btn').forEach(b=>b.classList.remove('active'));
+  const map={top:0,center:1,bottom:2};
+  const btns=document.querySelectorAll('.pos-btn');
+  if(map[pos]!==undefined) btns[map[pos]].classList.add('active');
+  document.getElementById('pos-btn-fit').classList.remove('active');
+}
+
+function toggleFit(){
+  const img=document.getElementById('foto-img');
+  if(!img) return;
+  fotoFitMode=!fotoFitMode;
+  if(fotoFitMode){
+    img.style.objectFit='contain';
+    img.style.objectPosition='center center';
+    document.querySelectorAll('.pos-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('pos-btn-fit').classList.add('active');
+  } else {
+    img.style.objectFit='cover';
+    img.style.objectPosition='center 50%';
+    document.querySelectorAll('.pos-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.pos-btn')[1].classList.add('active');
+    document.getElementById('pos-btn-fit').classList.remove('active');
+  }
 }
 
 /* ── MODAL FOTO AMPLIADA ── */
