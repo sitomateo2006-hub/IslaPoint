@@ -594,16 +594,25 @@ async function loadEst(){
   try{
     let all=[],from=0;
     while(true){
-      const res=await fetch(
-        `${URL_SB}/rest/v1/${TABLE}?select=Codigo,Nombre,Calle,N%C3%BAmero,Actividad,Foto-URL&order=Codigo.asc&offset=${from}&limit=1000`,
-        {headers:hdrs(SESSION?.access_token)}
-      );
-      if(!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-      const batch=await res.json();
-      if(!Array.isArray(batch)||!batch.length) break;
+      const url=`${URL_SB}/rest/v1/${TABLE}?select=*&order=Codigo.asc&offset=${from}&limit=1000`;
+      const res=await fetch(url,{headers:{...hdrs(SESSION?.access_token),'Range-Unit':'items','Range':`${from}-${from+999}`}});
+      const txt=await res.text();
+      if(!res.ok) throw new Error(`HTTP ${res.status}: ${txt.slice(0,200)}`);
+      let batch;
+      try{ batch=JSON.parse(txt); }
+      catch(pe){ throw new Error('Respuesta no es JSON: '+txt.slice(0,100)); }
+      if(!Array.isArray(batch)){
+        if(batch&&batch.message) throw new Error(batch.message);
+        throw new Error('Respuesta inesperada');
+      }
+      if(!batch.length) break;
       all=all.concat(batch);
       if(batch.length<1000) break;
       from+=1000;
+    }
+    if(!all.length){
+      document.getElementById('est-list').innerHTML='<div class="ldr" style="color:var(--red)">⚠️ Tabla vacía o sin acceso</div>';
+      return;
     }
     allEst=all;
     filtrados=[...allEst];
@@ -613,7 +622,8 @@ async function loadEst(){
     actualizarProgreso();
     toast(`📋 ${allEst.length} establecimientos cargados`,'info');
   }catch(e){
-    document.getElementById('est-list').innerHTML=`<div class="ldr" style="color:var(--red)">❌ Error: ${e.message}</div>`;
+    console.error('loadEst:',e);
+    document.getElementById('est-list').innerHTML=`<div class="ldr" style="color:var(--red)">❌ ${e.message}</div>`;
     toast('Error cargando establecimientos','err');
   }
 }
