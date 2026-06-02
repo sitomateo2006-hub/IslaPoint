@@ -102,6 +102,10 @@ header{background:linear-gradient(135deg,var(--b9),var(--b8) 60%,var(--b7));heig
 .est-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g4);padding:8px 10px 3px;display:flex;align-items:center;gap:8px;flex-shrink:0}
 .est-section-label::after{content:'';flex:1;height:1px;background:var(--g2)}
 .est-section-label.completadas{color:var(--green)}
+.est-section-label.sin-nombre{color:#b45309;background:#fffbeb;border-radius:6px;padding:6px 10px 4px;border:1px solid #fde68a}
+.est-item.sin-nombre-item{border-left:3px solid #f59e0b;background:#fffbeb}
+.est-item.sin-nombre-item .est-nombre{color:#b45309;font-style:italic}
+.est-item.sin-nombre-item .est-thumb-empty{background:#fef3c7;border-color:#fde68a;color:#b45309}
 
 .est-item{
   padding:9px 10px;border:1.5px solid var(--g2);border-radius:9px;
@@ -655,16 +659,22 @@ function renderEst(){
     const sorted=[...filtrados].sort((a,b)=>a.Codigo-b.Codigo);
     html=sorted.map(it=>itemHTML(it)).join('');
   }else{
-    // Sin búsqueda: pendientes primero, luego completados
-    const sin=[...filtrados].filter(e=>!e['Foto-URL']).sort((a,b)=>a.Codigo-b.Codigo);
-    const con=[...filtrados].filter(e=>e['Foto-URL']).sort((a,b)=>a.Codigo-b.Codigo);
-    if(sin.length){
-      html+=`<div class="est-section-label">📷 Pendientes — ${sin.length}</div>`;
-      html+=sin.map(it=>itemHTML(it)).join('');
+    // Cuatro grupos: sin nombre primero (urgente), pendientes, con foto, y dentro sin nombre+foto
+    const sinNombre=[...filtrados].filter(e=>!e.Nombre||!e.Nombre.trim()).sort((a,b)=>a.Codigo-b.Codigo);
+    const sinFotoConNombre=[...filtrados].filter(e=>e.Nombre&&e.Nombre.trim()&&!e['Foto-URL']).sort((a,b)=>a.Codigo-b.Codigo);
+    const conFoto=[...filtrados].filter(e=>e['Foto-URL']&&e.Nombre&&e.Nombre.trim()).sort((a,b)=>a.Codigo-b.Codigo);
+
+    if(sinNombre.length){
+      html+=`<div class="est-section-label sin-nombre">❓ Sin nombre — ${sinNombre.length}</div>`;
+      html+=sinNombre.map(it=>itemHTML(it)).join('');
     }
-    if(con.length){
-      html+=`<div class="est-section-label completadas">✅ Con foto — ${con.length}</div>`;
-      html+=con.map(it=>itemHTML(it)).join('');
+    if(sinFotoConNombre.length){
+      html+=`<div class="est-section-label">📷 Pendientes — ${sinFotoConNombre.length}</div>`;
+      html+=sinFotoConNombre.map(it=>itemHTML(it)).join('');
+    }
+    if(conFoto.length){
+      html+=`<div class="est-section-label completadas">✅ Con foto — ${conFoto.length}</div>`;
+      html+=conFoto.map(it=>itemHTML(it)).join('');
     }
   }
   list.innerHTML=html;
@@ -683,7 +693,8 @@ function itemHTML(it){
   const thumb=conFoto
     ?`<img class="est-thumb" src="${it['Foto-URL']}" alt="" loading="lazy" onerror="this.style.display='none'">`
     :`<div class="est-thumb-empty">🏪</div>`;
-  return `<div class="est-item${conFoto?' tiene-foto':''}${activo?' seleccionado':''}"
+  const sinNombreItem=!it.Nombre||!it.Nombre.trim();
+  return `<div class="est-item${conFoto?' tiene-foto':''}${activo?' seleccionado':''}${sinNombreItem?' sin-nombre-item':''}"
     data-id="${it.Codigo}"
     onclick="seleccionarEst(${it.Codigo})">
     ${thumb}
