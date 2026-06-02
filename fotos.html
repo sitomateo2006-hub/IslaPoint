@@ -302,6 +302,7 @@ header{background:linear-gradient(135deg,var(--b9),var(--b8) 60%,var(--b7));heig
 /* ── CONFIG ── */
 const URL_SB      = 'https://qqsmojwgkgcemhvjcwgx.supabase.co';
 const KEY_SB      = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxc21vandna2djZW1odmpjd2d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2OTgyODMsImV4cCI6MjA5NTI3NDI4M30.lGrIWt3w8CRtWCkRPFCDjgbP4GhS2m-1X6l26IKqbA8';
+const KEY_SRV     = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxc21vandna2djZW1odmpjd2d4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTY5ODI4MywiZXhwIjoyMDk1Mjc0MjgzfQ.SBbsxPyYvcSKQOG_QG3EJGgmjd_RpEd3h9wg1LWWNps';
 const ADMIN_EMAIL = 'adminislapoint@gmail.com';
 const TABLE       = 'IslaPoint';
 
@@ -446,8 +447,13 @@ const IDS = [
 ];
 
 /* ── HELPERS ── */
-function hdrs(t){
-  return{'apikey':KEY_SB,'Authorization':'Bearer '+(t||KEY_SB),'Content-Type':'application/json','Prefer':'return=representation'};
+// Datos: siempre service_role (bypasea RLS)
+function hdrs(){
+  return{'apikey':KEY_SRV,'Authorization':'Bearer '+KEY_SRV,'Content-Type':'application/json','Prefer':'return=representation'};
+}
+// Auth: anon key para login
+function hdrsAuth(){
+  return{'apikey':KEY_SB,'Content-Type':'application/json'};
 }
 
 // URL de imagen que funciona con Drive (thumbnail público)
@@ -500,7 +506,7 @@ async function doLogin(){
   try{
     const res=await fetch(`${URL_SB}/auth/v1/token?grant_type=password`,{
       method:'POST',
-      headers:{'apikey':KEY_SB,'Content-Type':'application/json'},
+      headers:hdrsAuth(),
       body:JSON.stringify({email:ADMIN_EMAIL,password:pass})
     });
     const data=await res.json();
@@ -595,7 +601,7 @@ async function loadEst(){
     let all=[],from=0;
     while(true){
       const url=`${URL_SB}/rest/v1/${TABLE}?select=*&order=Codigo.asc&offset=${from}&limit=1000`;
-      const res=await fetch(url,{headers:{...hdrs(SESSION?.access_token),'Range-Unit':'items','Range':`${from}-${from+999}`}});
+      const res=await fetch(url,{headers:hdrs()});
       const txt=await res.text();
       if(!res.ok) throw new Error(`HTTP ${res.status}: ${txt.slice(0,200)}`);
       let batch;
@@ -721,7 +727,7 @@ async function asignarFoto(codigo){
   try{
     const res=await fetch(`${URL_SB}/rest/v1/${TABLE}?Codigo=eq.${codigo}`,{
       method:'PATCH',
-      headers:hdrs(SESSION?.access_token),
+      headers:hdrs(),
       body:JSON.stringify({'Foto-URL':foto.url})
     });
     if(!res.ok){
