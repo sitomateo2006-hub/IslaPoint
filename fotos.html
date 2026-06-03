@@ -339,6 +339,12 @@ function toggleFit(){
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           Fotos de fachadas
         </div>
+        <!-- Selector de carpeta -->
+        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <button class="pos-btn active" id="btn-real" onclick="cambiarCarpeta('real')">📁 C. Real</button>
+          <button class="pos-btn" id="btn-rosario" onclick="cambiarCarpeta('rosario')">📁 Rosario</button>
+          <button class="pos-btn" id="btn-sanrafael" onclick="cambiarCarpeta('sanrafael')">📁 San Rafael</button>
+        </div>
         <div class="foto-nav">
           <button class="nav-btn" id="btn-prev" onclick="navFoto(-1)" disabled>← Ant.</button>
           <span class="foto-counter" id="foto-counter">Sin fotos</span>
@@ -432,141 +438,22 @@ const TABLE       = 'IslaPoint';
 let SESSION=null, allEst=[], filtrados=[], fotos=[], fotoIdx=0, codigoActual=null;
 
 /* ── IDs GOOGLE DRIVE PRECARGADOS (fotos 1–266 en orden) ── */
-const IDS = [
-'1eNWVtpcCU6hB2znq12o2tnUkothd0Mj5','1vfQT6oTL6-zEGdN7TT8LzmkJQi_poHRH',
-'1YdAVweUA_LnCgaCGTjF9MARUOkQ0agxp','1WEFRQXXARhJ3LAWOLB1DCuaWA7urOG3v',
-'1EZWD373DLo1ilzK7IIQzDzp-yWr_694I','11mGM-rnYCzYsSDMKnEYJnf5mXvyWJL9l',
-'1gwb0D1M5pxtugKZS09ud7knVHPjuXxfp','17QpPEnTPAgVFDA79_blbmgNX6ggREmtn',
-'15FkSzwNzAAluFcGbFYjI3W328QSluZYW','18PAnfC8CeS-DBE7jpRqTfuB3azqaKhjA',
-'1ELu-cxtKmUXqXQyO_y5erR2-7J8GmXo9','1W1zpfBNixibL-7utDRdsv2JkUwa7mImk',
-'1KDp3-Zikkax4gIedXTGNqz5E0wOWTOKY','1GuM4OfO1UmHdL89-lBamUZPsmakLPbUN',
-'1yMF6Siz5HPNDgyOt5ACz3-pXZdj3R1p-','1Uy4bwEGHxEXsmdcYPdnp63aelz7n9T5t',
-'1b7PYPs92o-Pg3qvFkoNKqOlUFoojMoNJ','1E3kamTJgzKB0hHAuNw_h764S5aWzwmkC',
-'1L95g1wkcv299pqoKA15gmIP1-Mbw3xAd','10HAtvxv-4XPJ-zGd0V_8kw9d65ZS1BAt',
-'11itn5csAv5hu5pen2vVrDdKEuU-Jmc9D','1OFiMwIxRTHkDnw11R9S9h1Jsksv_0Fnk',
-'1aQnWMn3WzxhUJJYQx4Rtpuqu311bVAe4','1gRphhois3Q_-uuwtivj3m4AGZdNTlsi6',
-'10PGOuHvqYO9E_LkJamyIiSNlBDU8Ux3n','1LM5m3r3XLYPAaSmIGclVzOWFRn2ZJj0f',
-'1NdVDaLXXI5iRyN7G1ZeG_yVubydlPxjo','12fy0bUAutZu8zKaxmOESL2-O52QD_sZ-',
-'1V26jTNSVt090MHzTRjAGTqslTu77jTJD','1_LzVZ1_PWU9MdEU0DuugiuoY2KWP-TXE',
-'16Kt3PYaye3cdXyyIEAvjuYhsgJJJ2Ba9','1Os68A4kXaWABkZgnxVFyV-Gb5Rb5Ln_D',
-'1ZTMSrcBoglJ67B7BFG4nj5mzzQp8exvd','1Kpn2vhgBedcx-qDUy6s-XWMC3R8Ffq5r',
-'1FqXZuQFtaryHbDvwGlvObXFlWuog6Blm','1s7bt9V71kFMjbBwBb58SO1T_rqgLZYgN',
-'1ZOd9ENqCW4FUNjOTRDYxYzNkKSF871hy','1pAzWjXdMD9INGuaUq3jMu_3bYucBi6sX',
-'1C9fnReMyBsb9BChJDcGAVrk0ei7G32BV','16wT7Qlpf-W6FeqdULY9kj1_bBv9FfKUG',
-'1D4hGAxtOyej3mfD1Qmq9P8LbSbZJiLd0','1Zm5WZYoWNTJERUjILQ08v_OLLiOFvKTQ',
-'1AULV_UaUlzuFGzob-TU0RzbdmegTOEj1','17w2fEsTK7YRLCV3hMSsBU8ccR6Wm9ysb',
-'1A_hk1SoEtU_f8npnQY7uDfm_YaGor05V','1lBMSyTKqGF74D-l3cjgqYHmZzvfSmNcz',
-'1D3izxEEhXHEMBO2Y9FbQeiv56QTTP6CS','1W2AlM9RwSRPv5Ay_2bIlRoaKEWkXiTXe',
-'1hnmRGuy0RUJIt2w5m2EqlYCpK4AZl6hd','14Ga0NrxICMxul7ZrC12m42Uhgw7tzsPz',
-'10lWnzyKo-s_iULDN7xrX-zbuib25mQgw','1Lq2zvl-X4an74oZQ4yHlWNvCSYXLLNA6',
-'12Q1gl-WD04E_aU5P9ac2prs4KfTPzXlZ','1EZ0YtJdZ-GNHAcifVVjNKf5D5agD5GMI',
-'1g77z9zekrm0yRcbEdYSge2o7ZzgbsXxY','1PIEV285xwLS6d1tiXLpE78KbNBcYAN8f',
-'11gnjmMtjqlPYsH5m7dO2hJdss90S0YQp','1NOrW82Ee-ZjLH2tXK5r277B6CNSdk4Lt',
-'17yYWneEV5QCpYRje7FCZCqFm8DUBIlN6','1TpHzAxIscCEFVbNgo2q20WWPI_En69XQ',
-'1s5feUDMdRWU9fmkC8ULQqy1DWAFvmgwC','1LphZO84IW2ASMl7J9tS2rYSPr8oDbm3k',
-'1KXqBhpm7BTY0nrR_mKd9asfcAFHqqY8b','1rBNEzBr063Op5F2QMizuneTn-_BInNnQ',
-'1N194N8rBUpTUfWoy7TW0ciYl9jdY4tNb','15Fcb7jwepiclUYe-ZLw9JgTaPjinCSmr',
-'1n9kSHK6jqGUmmXBUbTP2FDkr1qrgER2H','1-2Ao6mo8dmdx2SpIniNLY1yKJVFFKvCQ',
-'1d6yQtqyppXeWErpbgnr5KjF17YMXAuiu','16u0j0HXwifze3mm38iQ9mYi98SkKUCvf',
-'1xNMnfm26iOJKQetW0Tl3Z0WPut2pjlWJ','1j0yzfON23OMQmTbYf8Ykssag6x4AJuYJ',
-'1FUqrb87_BqtajDlVVTl8d6WOj6jD2HcQ','1f7atjPWPYs6VKEKPt3ocvl9o7FBLGFfc',
-'1nU_Fis-C7Ulw8y4Witmx2ZAqyCIKD8A-','1Km103I9ipp1ol5_yuV_Q8XQ9aBfZgFqH',
-'1xgh3TcKncQ2vLojl9qhzcx0NMxSCh6Bv','1gVV91OZqRbQb1bxX-VZZ2-yAJwu2-stp',
-'14bj-_nrNRfpvqMhM7Dp90pzWruxvTUYf','1wjYZ4xqa1P8-cRT267ZrxbQlZI_flIGf',
-'1cAjvOdhzmcGoU0khm0U3oPeiAX5Q9pOC','1QwTE8gJYTt1zoK3PXPlqnEYug1LgdUpn',
-'1yAZN9Q7pBkFJkWvWTsgw9jqkAG9-N4nu','1hjrXoNdXlAxr5MFtdH32Z0mjHu7b9FbG',
-'1oBMDr0BfwFNG8dEltXzlkJ3pdOg2P8IR','1CA7hpWdkt3jmiAYrPPf0xZp0IL0vnEVI',
-'1igcDosBHxJYe64e1mYkpWc44R0v2yfoN','1LbBApZa2ozuqrox8KT60n9spUAANWN-o',
-'1qQlkXBqgtILwfN735BbJCceM8yBRtVj0','1dWXjad6Lk4XEB8E_9MJXpPzcIUwn4ZEH',
-'1yhl0YeGtWATr5rk1Wqbzz7Ry7HNNX5I0','17pztre6Oj0kU8ly5sFS6lea9MobEiQwc',
-'18x4cVEhb4skE2daYIAlYhhofdhtN6kHY','1mJoNN_j2xMRbeYw_ve2Es0YpJB7gGRE9',
-'1zD_72aKRMqo0Yif3gpnY5RHA1KAUBhNC','1u7LgFJbllw-6eSrd3gGmu4bQKjgnrSRR',
-'1qGeL8m5NSVgpdysQVJN80y-kaokKmjzg','1fDqEzSqSzehbKnWFGo1tgKx_iDbKn-I_',
-'1D6LO5Qrob4p6GVwF83f0jVE8Dnlct9ka','1oDUQbP-XnP2s28oMY11BBwX6NU4wvjHB',
-'1UWNUcN4p29d9zQ78pbsIe992NVrAAf5T','1JTQjVzJLgAcT2fxri0V5yTNiSpWIBqCx',
-'1UN0323QJ10wL3XPScstdlymg3KZ1qTNK','19eTXmNrzQsyYYI092hXcl7gFbn9V44sR',
-'1KlSrDI1QxCcLPIEqVkAkazGmon6bLM85','1tSBF3efhrZZOWrFcJgr6lh7-uoMYAsAP',
-'1AgFTlp5z205ok3ZztKnZF-PPxNs8KFPd','1qUhJCawrp08RRQ3D4xBpiibdoVHYs8et',
-'117WOwoYLVti8IC8MMFcvGkqbvIbbJT9m','1rbUILyZUrAb7ePhFPXcjB4eGp1Rs5Xdh',
-'12dSbB-w9sDlsAWQQP9sF0HLwh4aIYRea','1FsXDWFyh-8ETbknQehGD_YTeIll6qY4T',
-'1sjN9xoTzoigBjMItHN1pxjzRr8A2E6xM','1dCWxurKcVueeka1uGmrRqwa_dfjsYjhJ',
-'19rtktE9V_Cp8djFh4hSxWyvl926OhB9z','1BcTujLwTT9Ldb6LBevkgj275k6OOcsAw',
-'1gt5cWRJYnlyr_q-0NvxhH_X6Gw9jRw4U','1IL22BzOplAG9WelkwJC0i5YCSc_oDSHT',
-'1TyfgCqUolVS6s6ZFvWP0_ldcgXOYjsit','1fzJVE9ZSLDv_ltOEDy8z6syTlBTKc6gv',
-'1IAp6QHQg2VPupu7NLMUMEBan8N5U2n7n','184sV4JcRyUMajNKfL3Neq7jZvI9c-NJu',
-'1fv4KXAkdAu6mlwG6xwcJvv8WhIrgSzxY','10s2NNNJ1bW9K6AleFeoV73gYLUzC-5yT',
-'1nN5WQIkVwQtWGo1tBAlHMnF0mFc4OOaH','1eELtL_GHLCtFKABMyrMa4PzvWOVP13IU',
-'1SIa-lPu5OzlhR7vmYxFfPSBqvortRw6B','1bAJiNUUSmDTbofVUml2D706vB2KoQjsP',
-'1jcLkXyxZVoTc8PWJPKfvkKIJCsiJn_Tn','1WjvJ2hDRIYhGpdTt5aYULLnJE153nVRz',
-'1YQJ2nYu0AClaVzZC0UoTKJdmmBviaXm1','1qlhjwjbqjRXLegsIXDTaYPVBi2zxnY1V',
-'1kzyINB2KYMQoQPkVgBt2WaO7R9sddFe0','1kRFBTXwP4iohYIjvIrmGRgJRxtpGRVXT',
-'1RKFCkdCxbpypu9tUEgY6L9i6PprnzoLa','1mHV3VV2_ODyirgqq63Pt4fCwA7f37HeS',
-'1NcML9HZvY2Sbp_A-8EJU6hYFPP7Xw685','1Wk95pLArIyJBWZEMoKUHfaw9i58cPpkv',
-'1nlhU3X20kb2k0PydJEp1U2O3pyoh3M7s','1SVY1HugljD0jxv1E7YqLYU5oz921_SOa',
-'1Vy9fagUwuNvXPz5dQOanIwSOADFDU0Kt','19tRJ4-HCBoSEsQXGJI_fy_U0wC3Dy4Wj',
-'1imvQEXAWxgAV_HSlnzlXS-1Q_awgbg86','1cEd3kfYbnOfOdIwLuGdkkUWv-Kuh10TF',
-'1JoKbDh3baVa-3UcDl51NC-1VGh8uEiNH','1jzC0lnC9wquQjubkYB2R6ufpauJzb5xx',
-'1Hv9zhoUC8jw-j35sUSukS5BQLAzeprLL','1yQ-rw0PKvigfZodmU5KclrmPw5QtDEoa',
-'1CPaoop8wXQJKpJevzHvEY9RU2ophPyXO','1aRrg-o1Y8az6g2iGM2PQT3TkI-rdJ3R3',
-'1coCgNhXGraS_hnZlkf4YlLE28cHuL8em','1KwUsftrslxNbXmjYa55vmupBTSlvWCmS',
-'105Si6zNQmIqAnuiipPZhe3kyts1hDuHG','1WfOkvV17hZDnK7cUr1ANG_RSMXHp7jL7',
-'1dI_6HhWxQIJ8YSfELhGfVN7waI-dA2qk','1sBHGpjecd6yNsGjxs83RM16iR0BSfP_t',
-'1KpJL4_JFEHZ9PZI6v0UpEQHMN8w6-INX','100k65eG3cseizeGMw_1v8Om2uK6ASuus',
-'10jTf3JwS6dJPKIt4-VJ2UVb0LDr5BW5w','13nHUoeATjmvvBzVMel-34DggiyFW6ZTT',
-'1mlCUc32GOflPo0eizB4lkopKihz0VH9o','1XqI7LpJDcjA5eMG1upkkBhqgsNxOqIlo',
-'1b_VIZJyJDIzMN0Uq8u78N292S-iHa0Fu','1uHaXOS0AZ3cAnGwhFuniwSl8C8hxFN9t',
-'1N2aNCTPB6HZ7bMxzw913Ys6izHUjEgTd','1IU1JAApQjpp-Q6IAWN2_0hgB6nzS3V8v',
-'1WGeDj3jdAqXDfvELPyXegeyRLwdaoLeM','1JiVzR9Wly3Z1toAKT7C4_wGrhSD_4FF6',
-'1BbPiAX0Cb7-_qdQsZ5rtUBk1BgXfDvqr','1f00rZ3fV-V1eDxCIgfYsXgU5F_d6sw2N',
-'1AXP5j2UcrKRiXEQDez0kSy7y1AEWteYq','19K6_aZnTauVdvnRezCxWqOBdui77G2yd',
-'1ocV3XB_zQ739WNnpXo90WJm_aD92agC3','1Zt-X4rv4VDkGJ6CGKiIluRFsYGZT_M8P',
-'1Qd1Fam56nXjcdBXIWNGQCrntIhNsHuw5','1F-PBFaOsnKxr2HgTWrx-JRqIhuRFzjRS',
-'1Un6wbcnIRjyUxZfcip7tad6LJprh8LZT','1mv1u8y5h4tfR6TJ_Pzc4aZQb3ZV7fuhm',
-'1O0J1Cz5FwjkGbN5dgpMPOPQ3fJFqHZXx','1aTtVLYQYpSC8F005x-d_0xFkrX1BhpqY',
-'1zB5snLOsusbSgrLd_d-e2p9s7I8KWd2p','1tc3tL2g1h9E-uZ34PII9IQbAgffH2Wra',
-'157umh9aAPdxty6kmemQSm9q8GTGazo7U','1nGDjU7y3mYrl0H1ZZb4jzGb1_UXSAWKT',
-'1kDLoG2XaOHHz3nE9NblDymEy03g9Rsju','1eKz7rZ5MB6ZQZzJpTR4wJRr0EHQoJXr2',
-'19xDO5F-cOfbMG_ouloQ-dSDuLDsmdSpP','1rCebo6Im9GpFX3RR78O2sfFs8hht-6KI',
-'1lJte0sU17hj8r1QU5tpnW9WPSztfBNne','1em77v0FvjZB5Ol_C_n8HbSQHiX-eg9VF',
-'19fxSoJn176k4q1JF3rhxPrTKMyChDpxn','1IUTFRbMEm4K0BGTReqq7oulTpqtyIHrz',
-'1EHYK-tubVe56dQKsKrcJeNMHnlANETco','1u3aFQC9063i4Dm6pAIUYQc4cTAWV_ZfX',
-'1QtjONpbSm2WwoPVVrDQmPGw7CYmHet1P','1ZtmL9-SrDEM8uK2g-uViehQdwzPaGwuI',
-'16DntZ7hP0uIdXCz5oDqUXD3z_Wi7fz8c','1SOOkqfmgoAIErM4ERy6vWG5KLQb3J-8P',
-'1Za1aL2ocbKwI9PX_NfULG0H96d0FplHz','15p5YGNrdFzTgvds_nruLXoWoYwgJk12P',
-'1TL2MdFF0wONs6LL2X9srrdcuwhOx5wzg','19ssvcOXYAcB-yqMHUhSdhCPJnx7AGoSy',
-'1rOo8CNIGTMNxyV4GB7YlGJd1eGZVPgzx','16IIsc5CsDZLoq4kHzbf-l42EODBIFJeb',
-'1-sCMqDogPXAqaPan-W_seHQ-SzkTvpWh','1ZWgK78eR5WkLu7zhlZmmGkvmK-OqY5_p',
-'1Mg8Bv9nmlqbYBO_MBuHSyfwqT_49GHKe','1Av_e6Kj1RlA0x_KBHeQq7zvOf4pVbBD4',
-'1R7KdzFdralhgaL2j1cC_CAD8be9rTd2S','1ITB5SDKZ3zA9xtABi4th-ewsYMRs0dFd',
-'1KW4tlIRNxNlq1ib-q12FASyBr7it6XzX','1qTe762DE8nRO8AyvJInJILcef3mHGjWJ',
-'1j2qoMZAnX4WQmCDaPUjbdK6hj_-vvnAI','1jLtRieO2fE0zvBXJUxE4zzRpAGCILIQQ',
-'1nOB9tR9j7sYfqEh_4gMLPgrSuCGlDr5G','1fH0BzQb9ElSNZFG7YIKF-ZWNnBBajERh',
-'1DuavfFtx-XxMgPNBiFuxcSLWSrHMyaGr','15Q3upXw4ABJDSqPfhQEVkDlVwAbATDNZ',
-'1CVJ8yYsjC58eGBJhVThPi-LaPGKzcN4m','1lJGlqW6WazPdx_gB7r73KDbXQTnPqGWO',
-'1F-XGXi3-Vo49BWAr9xaMjfQJuIzy0yE4','1RqyAi7AtyFIpwZZx8cS09j0Uqeag5GRU',
-'1x1JG0_Zi1ROWXmG8x1JxyfbSg2vGWhGh','1osvgQkLM352RBxre1IDNv52Ru7ta2wTd',
-'1AzY5HVzUdg4p74cKpiAawmIMoETxxIGM','17GCH6uha5me1ZVHzycGOky21mDpL6km5',
-'1cVm9Hlw5P1cW1NW9pitTJHNcIcmqq2Vs','13kb_UarkveUR4_6fvx_YCWyUL0CGCpxI',
-'11N13VrIXt6QIAyi3iByNJmDkyYBfKB-b','1ReMbR_1Tfv-L7lXtn3d51mRkgfCUbRLZ',
-'1b_o_s2XhMn3Qu6C2hW8SXYZ73fErgjvJ','1tU2bQ4M4-3fc6Mk5C-Pvk6px823vrkBE',
-'1dq980K_AHNNptpQsla0qwQLy2ZF4Q0cf','1RGftmCPscL729vkR2ARc_tDgOB06MUze',
-'1A6pkr_D4z0N7odP1y19Wo5okvsRkLZTr','1Nse0p5p68bj7VWgH7YC1xl4Ro_tEKB-j',
-'14msmc258A8G1pgq1dRx9AXPEIPg0cBE2','1HkCC-55cKriHjlMvkTX06ruxLA-DoykC',
-'15m51xhgLyApDV9vAUrhKphaAxmFH2reA','1sQgmMfdgOwJIoozUTa01_6xXzt_440R0',
-'17SrfEazBDf1zL9nfJxIdS0x8td2QJPmX','1QbqVb56o6LrJ8ALpcvpKKJILLwalgNuk',
-'1BYZIXrHskeaBlgx6AN3UdKt_zbckJ0dB','1CXHadsBCdqs98_NrlkTpvNPPajCOpF0D',
-'1g47iu0DaZEosfCmHml0w6CXBLuRIXd-Y','1oUSEu7TPdci9yV9ZCY6g5Ia9wKQVFASW',
-'1-lFt9poanJqPZ0uwIJczMXRA2mwrNMnQ','1soIdGCT1exkqj40dowE0huEXxPWvFyv8',
-'1RlQL-ArHi-2Yv5rTsWa2zf4mBee_qTQd','1Hizrx5OPP8yXyWJE9Yvq7v4c43GKNwzi',
-'1E8f3Qg4LDmiPli2sZz1Vytj2LWzTXG-t','19SeHrQJMa4yqafaPUQSjviC1jo934lJF',
-'1c-Dvi4T2Roa--J9WTQKc8F8YzpQwnPaS','112wqpaC8LIQY_8_FHxLJaDlYx5Lpb3hm',
-'1Rwv0WCBuWSc53DDSFkbcJq_TWuP0Iy29','1LF2SJ1-VyqptJu03JWMO1U5jSmyUi_YP',
-'1u522nYeauTPknV5SuFtt9frre3YlErZQ','1wcqdXCljir_fZdN-aXaHlCTnq5baduMN',
-'1k3RuXezTS1vn4ym5Rtie29naHSFm27US','1apvc6LANTDmZJSNUncmY23MEXV5RE0Ce',
-'1_YUY3MpoyJXfbPG59YA61_ktcu6i4wsD','1j9uWhMlo0qJE7rH2VORQF7N8osqN9B_r',
-'1PB33hEKwtIQnjTsr6RFRFCWITe1w-rF1','1VPKb0lJty2y4savHsuKM4bn8VqwLzhhR',
-'1VFKAH9P6ZbcH2V-5Gy9PoosB05qZO9Pe','1f6Um6lLpNzyXEpRbVJGU9ydPQoXcKgoN'
-];
+const CARPETAS = {
+  'real': {
+    label: '📁 Calle Real (266 fotos)',
+    ids: ['1eNWVtpcCU6hB2znq12o2tnUkothd0Mj5','1vfQT6oTL6-zEGdN7TT8LzmkJQi_poHRH','1YdAVweUA_LnCgaCGTjF9MARUOkQ0agxp','1WEFRQXXARhJ3LAWOLB1DCuaWA7urOG3v','1EZWD373DLo1ilzK7IIQzDzp-yWr_694I','11mGM-rnYCzYsSDMKnEYJnf5mXvyWJL9l','1gwb0D1M5pxtugKZS09ud7knVHPjuXxfp','17QpPEnTPAgVFDA79_blbmgNX6ggREmtn','15FkSzwNzAAluFcGbFYjI3W328QSluZYW','18PAnfC8CeS-DBE7jpRqTfuB3azqaKhjA','1ELu-cxtKmUXqXQyO_y5erR2-7J8GmXo9','1W1zpfBNixibL-7utDRdsv2JkUwa7mImk','1KDp3-Zikkax4gIedXTGNqz5E0wOWTOKY','1GuM4OfO1UmHdL89-lBamUZPsmakLPbUN','1yMF6Siz5HPNDgyOt5ACz3-pXZdj3R1p-','1Uy4bwEGHxEXsmdcYPdnp63aelz7n9T5t','1b7PYPs92o-Pg3qvFkoNKqOlUFoojMoNJ','1E3kamTJgzKB0hHAuNw_h764S5aWzwmkC','1L95g1wkcv299pqoKA15gmIP1-Mbw3xAd','10HAtvxv-4XPJ-zGd0V_8kw9d65ZS1BAt','11itn5csAv5hu5pen2vVrDdKEuU-Jmc9D','1OFiMwIxRTHkDnw11R9S9h1Jsksv_0Fnk','1aQnWMn3WzxhUJJYQx4Rtpuqu311bVAe4','1gRphhois3Q_-uuwtivj3m4AGZdNTlsi6','10PGOuHvqYO9E_LkJamyIiSNlBDU8Ux3n','1LM5m3r3XLYPAaSmIGclVzOWFRn2ZJj0f','1NdVDaLXXI5iRyN7G1ZeG_yVubydlPxjo','12fy0bUAutZu8zKaxmOESL2-O52QD_sZ-','1V26jTNSVt090MHzTRjAGTqslTu77jTJD','1_LzVZ1_PWU9MdEU0DuugiuoY2KWP-TXE','16Kt3PYaye3cdXyyIEAvjuYhsgJJJ2Ba9','1Os68A4kXaWABkZgnxVFyV-Gb5Rb5Ln_D','1ZTMSrcBoglJ67B7BFG4nj5mzzQp8exvd','1Kpn2vhgBedcx-qDUy6s-XWMC3R8Ffq5r','1FqXZuQFtaryHbDvwGlvObXFlWuog6Blm','1s7bt9V71kFMjbBwBb58SO1T_rqgLZYgN','1ZOd9ENqCW4FUNjOTRDYxYzNkKSF871hy','1pAzWjXdMD9INGuaUq3jMu_3bYucBi6sX','1C9fnReMyBsb9BChJDcGAVrk0ei7G32BV','16wT7Qlpf-W6FeqdULY9kj1_bBv9FfKUG','1D4hGAxtOyej3mfD1Qmq9P8LbSbZJiLd0','1Zm5WZYoWNTJERUjILQ08v_OLLiOFvKTQ','1AULV_UaUlzuFGzob-TU0RzbdmegTOEj1','17w2fEsTK7YRLCV3hMSsBU8ccR6Wm9ysb','1A_hk1SoEtU_f8npnQY7uDfm_YaGor05V','1lBMSyTKqGF74D-l3cjgqYHmZzvfSmNcz','1D3izxEEhXHEMBO2Y9FbQeiv56QTTP6CS','1W2AlM9RwSRPv5Ay_2bIlRoaKEWkXiTXe','1hnmRGuy0RUJIt2w5m2EqlYCpK4AZl6hd','14Ga0NrxICMxul7ZrC12m42Uhgw7tzsPz','10lWnzyKo-s_iULDN7xrX-zbuib25mQgw','1Lq2zvl-X4an74oZQ4yHlWNvCSYXLLNA6','12Q1gl-WD04E_aU5P9ac2prs4KfTPzXlZ','1EZ0YtJdZ-GNHAcifVVjNKf5D5agD5GMI','1g77z9zekrm0yRcbEdYSge2o7ZzgbsXxY','1PIEV285xwLS6d1tiXLpE78KbNBcYAN8f','11gnjmMtjqlPYsH5m7dO2hJdss90S0YQp','1NOrW82Ee-ZjLH2tXK5r277B6CNSdk4Lt','17yYWneEV5QCpYRje7FCZCqFm8DUBIlN6','1TpHzAxIscCEFVbNgo2q20WWPI_En69XQ','1s5feUDMdRWU9fmkC8ULQqy1DWAFvmgwC','1LphZO84IW2ASMl7J9tS2rYSPr8oDbm3k','1KXqBhpm7BTY0nrR_mKd9asfcAFHqqY8b','1rBNEzBr063Op5F2QMizuneTn-_BInNnQ','1N194N8rBUpTUfWoy7TW0ciYl9jdY4tNb','15Fcb7jwepiclUYe-ZLw9JgTaPjinCSmr','1n9kSHK6jqGUmmXBUbTP2FDkr1qrgER2H','1-2Ao6mo8dmdx2SpIniNLY1yKJVFFKvCQ','1d6yQtqyppXeWErpbgnr5KjF17YMXAuiu','16u0j0HXwifze3mm38iQ9mYi98SkKUCvf','1xNMnfm26iOJKQetW0Tl3Z0WPut2pjlWJ','1j0yzfON23OMQmTbYf8Ykssag6x4AJuYJ','1FUqrb87_BqtajDlVVTl8d6WOj6jD2HcQ','1f7atjPWPYs6VKEKPt3ocvl9o7FBLGFfc','1nU_Fis-C7Ulw8y4Witmx2ZAqyCIKD8A-','1Km103I9ipp1ol5_yuV_Q8XQ9aBfZgFqH','1xgh3TcKncQ2vLojl9qhzcx0NMxSCh6Bv','1gVV91OZqRbQb1bxX-VZZ2-yAJwu2-stp','14bj-_nrNRfpvqMhM7Dp90pzWruxvTUYf','1wjYZ4xqa1P8-cRT267ZrxbQlZI_flIGf','1cAjvOdhzmcGoU0khm0U3oPeiAX5Q9pOC','1QwTE8gJYTt1zoK3PXPlqnEYug1LgdUpn','1yAZN9Q7pBkFJkWvWTsgw9jqkAG9-N4nu','1hjrXoNdXlAxr5MFtdH32Z0mjHu7b9FbG','1oBMDr0BfwFNG8dEltXzlkJ3pdOg2P8IR','1CA7hpWdkt3jmiAYrPPf0xZp0IL0vnEVI','1igcDosBHxJYe64e1mYkpWc44R0v2yfoN','1LbBApZa2ozuqrox8KT60n9spUAANWN-o','1qQlkXBqgtILwfN735BbJCceM8yBRtVj0','1dWXjad6Lk4XEB8E_9MJXpPzcIUwn4ZEH','1yhl0YeGtWATr5rk1Wqbzz7Ry7HNNX5I0','17pztre6Oj0kU8ly5sFS6lea9MobEiQwc','18x4cVEhb4skE2daYIAlYhhofdhtN6kHY','1mJoNN_j2xMRbeYw_ve2Es0YpJB7gGRE9','1zD_72aKRMqo0Yif3gpnY5RHA1KAUBhNC','1u7LgFJbllw-6eSrd3gGmu4bQKjgnrSRR','1qGeL8m5NSVgpdysQVJN80y-kaokKmjzg','1fDqEzSqSzehbKnWFGo1tgKx_iDbKn-I_','1D6LO5Qrob4p6GVwF83f0jVE8Dnlct9ka','1oDUQbP-XnP2s28oMY11BBwX6NU4wvjHB','1UWNUcN4p29d9zQ78pbsIe992NVrAAf5T','1JTQjVzJLgAcT2fxri0V5yTNiSpWIBqCx','1UN0323QJ10wL3XPScstdlymg3KZ1qTNK','19eTXmNrzQsyYYI092hXcl7gFbn9V44sR','1KlSrDI1QxCcLPIEqVkAkazGmon6bLM85','1tSBF3efhrZZOWrFcJgr6lh7-uoMYAsAP','1AgFTlp5z205ok3ZztKnZF-PPxNs8KFPd','1qUhJCawrp08RRQ3D4xBpiibdoVHYs8et','117WOwoYLVti8IC8MMFcvGkqbvIbbJT9m','1rbUILyZUrAb7ePhFPXcjB4eGp1Rs5Xdh','12dSbB-w9sDlsAWQQP9sF0HLwh4aIYRea','1FsXDWFyh-8ETbknQehGD_YTeIll6qY4T','1sjN9xoTzoigBjMItHN1pxjzRr8A2E6xM','1dCWxurKcVueeka1uGmrRqwa_dfjsYjhJ','19rtktE9V_Cp8djFh4hSxWyvl926OhB9z','1BcTujLwTT9Ldb6LBevkgj275k6OOcsAw','1gt5cWRJYnlyr_q-0NvxhH_X6Gw9jRw4U','1IL22BzOplAG9WelkwJC0i5YCSc_oDSHT','1TyfgCqUolVS6s6ZFvWP0_ldcgXOYjsit','1fzJVE9ZSLDv_ltOEDy8z6syTlBTKc6gv','1IAp6QHQg2VPupu7NLMUMEBan8N5U2n7n','184sV4JcRyUMajNKfL3Neq7jZvI9c-NJu','1fv4KXAkdAu6mlwG6xwcJvv8WhIrgSzxY','10s2NNNJ1bW9K6AleFeoV73gYLUzC-5yT','1nN5WQIkVwQtWGo1tBAlHMnF0mFc4OOaH','1eELtL_GHLCtFKABMyrMa4PzvWOVP13IU','1SIa-lPu5OzlhR7vmYxFfPSBqvortRw6B','1bAJiNUUSmDTbofVUml2D706vB2KoQjsP','1jcLkXyxZVoTc8PWJPKfvkKIJCsiJn_Tn','1WjvJ2hDRIYhGpdTt5aYULLnJE153nVRz','1YQJ2nYu0AClaVzZC0UoTKJdmmBviaXm1','1qlhjwjbqjRXLegsIXDTaYPVBi2zxnY1V','1kzyINB2KYMQoQPkVgBt2WaO7R9sddFe0','1kRFBTXwP4iohYIjvIrmGRgJRxtpGRVXT','1RKFCkdCxbpypu9tUEgY6L9i6PprnzoLa','1mHV3VV2_ODyirgqq63Pt4fCwA7f37HeS','1NcML9HZvY2Sbp_A-8EJU6hYFPP7Xw685','1Wk95pLArIyJBWZEMoKUHfaw9i58cPpkv','1nlhU3X20kb2k0PydJEp1U2O3pyoh3M7s','1SVY1HugljD0jxv1E7YqLYU5oz921_SOa','1Vy9fagUwuNvXPz5dQOanIwSOADFDU0Kt','19tRJ4-HCBoSEsQXGJI_fy_U0wC3Dy4Wj','1imvQEXAWxgAV_HSlnzlXS-1Q_awgbg86','1cEd3kfYbnOfOdIwLuGdkkUWv-Kuh10TF','1JoKbDh3baVa-3UcDl51NC-1VGh8uEiNH','1jzC0lnC9wquQjubkYB2R6ufpauJzb5xx','1Hv9zhoUC8jw-j35sUSukS5BQLAzeprLL','1yQ-rw0PKvigfZodmU5KclrmPw5QtDEoa','1CPaoop8wXQJKpJevzHvEY9RU2ophPyXO','1aRrg-o1Y8az6g2iGM2PQT3TkI-rdJ3R3','1coCgNhXGraS_hnZlkf4YlLE28cHuL8em','1KwUsftrslxNbXmjYa55vmupBTSlvWCmS','105Si6zNQmIqAnuiipPZhe3kyts1hDuHG','1WfOkvV17hZDnK7cUr1ANG_RSMXHp7jL7','1dI_6HhWxQIJ8YSfELhGfVN7waI-dA2qk','1sBHGpjecd6yNsGjxs83RM16iR0BSfP_t','1KpJL4_JFEHZ9PZI6v0UpEQHMN8w6-INX','100k65eG3cseizeGMw_1v8Om2uK6ASuus','10jTf3JwS6dJPKIt4-VJ2UVb0LDr5BW5w','13nHUoeATjmvvBzVMel-34DggiyFW6ZTT','1mlCUc32GOflPo0eizB4lkopKihz0VH9o','1XqI7LpJDcjA5eMG1upkkBhqgsNxOqIlo','1b_VIZJyJDIzMN0Uq8u78N292S-iHa0Fu','1uHaXOS0AZ3cAnGwhFuniwSl8C8hxFN9t','1N2aNCTPB6HZ7bMxzw913Ys6izHUjEgTd','1IU1JAApQjpp-Q6IAWN2_0hgB6nzS3V8v','1WGeDj3jdAqXDfvELPyXegeyRLwdaoLeM','1JiVzR9Wly3Z1toAKT7C4_wGrhSD_4FF6','1BbPiAX0Cb7-_qdQsZ5rtUBk1BgXfDvqr','1f00rZ3fV-V1eDxCIgfYsXgU5F_d6sw2N','1AXP5j2UcrKRiXEQDez0kSy7y1AEWteYq','19K6_aZnTauVdvnRezCxWqOBdui77G2yd','1ocV3XB_zQ739WNnpXo90WJm_aD92agC3','1Zt-X4rv4VDkGJ6CGKiIluRFsYGZT_M8P','1Qd1Fam56nXjcdBXIWNGQCrntIhNsHuw5','1F-PBFaOsnKxr2HgTWrx-JRqIhuRFzjRS','1Un6wbcnIRjyUxZfcip7tad6LJprh8LZT','1mv1u8y5h4tfR6TJ_Pzc4aZQb3ZV7fuhm','1O0J1Cz5FwjkGbN5dgpMPOPQ3fJFqHZXx','1aTtVLYQYpSC8F005x-d_0xFkrX1BhpqY','1zB5snLOsusbSgrLd_d-e2p9s7I8KWd2p','1tc3tL2g1h9E-uZ34PII9IQbAgffH2Wra','157umh9aAPdxty6kmemQSm9q8GTGazo7U','1nGDjU7y3mYrl0H1ZZb4jzGb1_UXSAWKT','1kDLoG2XaOHHz3nE9NblDymEy03g9Rsju','1eKz7rZ5MB6ZQZzJpTR4wJRr0EHQoJXr2','19xDO5F-cOfbMG_ouloQ-dSDuLDsmdSpP','1rCebo6Im9GpFX3RR78O2sfFs8hht-6KI','1lJte0sU17hj8r1QU5tpnW9WPSztfBNne','1em77v0FvjZB5Ol_C_n8HbSQHiX-eg9VF','19fxSoJn176k4q1JF3rhxPrTKMyChDpxn','1IUTFRbMEm4K0BGTReqq7oulTpqtyIHrz','1EHYK-tubVe56dQKsKrcJeNMHnlANETco','1u3aFQC9063i4Dm6pAIUYQc4cTAWV_ZfX','1QtjONpbSm2WwoPVVrDQmPGw7CYmHet1P','1ZtmL9-SrDEM8uK2g-uViehQdwzPaGwuI','16DntZ7hP0uIdXCz5oDqUXD3z_Wi7fz8c','1SOOkqfmgoAIErM4ERy6vWG5KLQb3J-8P','1Za1aL2ocbKwI9PX_NfULG0H96d0FplHz','15p5YGNrdFzTgvds_nruLXoWoYwgJk12P','1TL2MdFF0wONs6LL2X9srrdcuwhOx5wzg','19ssvcOXYAcB-yqMHUhSdhCPJnx7AGoSy','1rOo8CNIGTMNxyV4GB7YlGJd1eGZVPgzx','16IIsc5CsDZLoq4kHzbf-l42EODBIFJeb','1-sCMqDogPXAqaPan-W_seHQ-SzkTvpWh','1ZWgK78eR5WkLu7zhlZmmGkvmK-OqY5_p','1Mg8Bv9nmlqbYBO_MBuHSyfwqT_49GHKe','1Av_e6Kj1RlA0x_KBHeQq7zvOf4pVbBD4','1R7KdzFdralhgaL2j1cC_CAD8be9rTd2S','1ITB5SDKZ3zA9xtABi4th-ewsYMRs0dFd','1KW4tlIRNxNlq1ib-q12FASyBr7it6XzX','1qTe762DE8nRO8AyvJInJILcef3mHGjWJ','1j2qoMZAnX4WQmCDaPUjbdK6hj_-vvnAI','1jLtRieO2fE0zvBXJUxE4zzRpAGCILIQQ','1nOB9tR9j7sYfqEh_4gMLPgrSuCGlDr5G','1fH0BzQb9ElSNZFG7YIKF-ZWNnBBajERh','1DuavfFtx-XxMgPNBiFuxcSLWSrHMyaGr','15Q3upXw4ABJDSqPfhQEVkDlVwAbATDNZ','1CVJ8yYsjC58eGBJhVThPi-LaPGKzcN4m','1lJGlqW6WazPdx_gB7r73KDbXQTnPqGWO','1F-XGXi3-Vo49BWAr9xaMjfQJuIzy0yE4','1RqyAi7AtyFIpwZZx8cS09j0Uqeag5GRU','1x1JG0_Zi1ROWXmG8x1JxyfbSg2vGWhGh','1osvgQkLM352RBxre1IDNv52Ru7ta2wTd','1AzY5HVzUdg4p74cKpiAawmIMoETxxIGM','17GCH6uha5me1ZVHzycGOky21mDpL6km5','1cVm9Hlw5P1cW1NW9pitTJHNcIcmqq2Vs','13kb_UarkveUR4_6fvx_YCWyUL0CGCpxI','11N13VrIXt6QIAyi3iByNJmDkyYBfKB-b','1ReMbR_1Tfv-L7lXtn3d51mRkgfCUbRLZ','1b_o_s2XhMn3Qu6C2hW8SXYZ73fErgjvJ','1tU2bQ4M4-3fc6Mk5C-Pvk6px823vrkBE','1dq980K_AHNNptpQsla0qwQLy2ZF4Q0cf','1RGftmCPscL729vkR2ARc_tDgOB06MUze','1A6pkr_D4z0N7odP1y19Wo5okvsRkLZTr','1Nse0p5p68bj7VWgH7YC1xl4Ro_tEKB-j','14msmc258A8G1pgq1dRx9AXPEIPg0cBE2','1HkCC-55cKriHjlMvkTX06ruxLA-DoykC','15m51xhgLyApDV9vAUrhKphaAxmFH2reA','1sQgmMfdgOwJIoozUTa01_6xXzt_440R0','17SrfEazBDf1zL9nfJxIdS0x8td2QJPmX','1QbqVb56o6LrJ8ALpcvpKKJILLwalgNuk','1BYZIXrHskeaBlgx6AN3UdKt_zbckJ0dB','1CXHadsBCdqs98_NrlkTpvNPPajCOpF0D','1g47iu0DaZEosfCmHml0w6CXBLuRIXd-Y','1oUSEu7TPdci9yV9ZCY6g5Ia9wKQVFASW','1-lFt9poanJqPZ0uwIJczMXRA2mwrNMnQ','1soIdGCT1exkqj40dowE0huEXxPWvFyv8','1RlQL-ArHi-2Yv5rTsWa2zf4mBee_qTQd','1Hizrx5OPP8yXyWJE9Yvq7v4c43GKNwzi','1E8f3Qg4LDmiPli2sZz1Vytj2LWzTXG-t','19SeHrQJMa4yqafaPUQSjviC1jo934lJF','1c-Dvi4T2Roa--J9WTQKc8F8YzpQwnPaS','112wqpaC8LIQY_8_FHxLJaDlYx5Lpb3hm','1Rwv0WCBuWSc53DDSFkbcJq_TWuP0Iy29','1LF2SJ1-VyqptJu03JWMO1U5jSmyUi_YP','1u522nYeauTPknV5SuFtt9frre3YlErZQ','1wcqdXCljir_fZdN-aXaHlCTnq5baduMN','1k3RuXezTS1vn4ym5Rtie29naHSFm27US','1apvc6LANTDmZJSNUncmY23MEXV5RE0Ce','1_YUY3MpoyJXfbPG59YA61_ktcu6i4wsD','1j9uWhMlo0qJE7rH2VORQF7N8osqN9B_r','1PB33hEKwtIQnjTsr6RFRFCWITe1w-rF1','1VPKb0lJty2y4savHsuKM4bn8VqwLzhhR','1VFKAH9P6ZbcH2V-5Gy9PoosB05qZO9Pe','1f6Um6lLpNzyXEpRbVJGU9ydPQoXcKgoN']
+  },
+  'rosario': {
+    label: '📁 Calle Rosario (61 fotos)',
+    ids: ['1qUPLMEW51J9pMplriWPntGBdiZfY7-ds','1YWQar900nppNpBWBhTNCzCio75-jNMi_','1D25TRbkeN0CCwd0nPDJ2rO9vKeINuL0G','1xItkfa50IsnQfqDl82fbMGe_ioWx_qz2','1B0NAr2yLP_KYl5XIygNcxPOQEZ6oViFW','1AHm-Wf0NIYZuXNDC1nACJKfmK7EC5J8m','1i84sw9BTOjeaaJxfWi6F9Skw59HT420c','1Tv4qJpzAh_70A8iBLk6GqWErrAdKEa1M','1ZDFyhzSs3wc7mq2OH2hn671E5YMveTiH','1L_zpJ5exxC6XtN0KU0WDdY3BG2Xpwt0x','1VI8ZZeb0P0oUtMRRMYFpeZb8JYrqPUKK','1aNkcCT5T4SpucAclKfCaLjJtlLdcK2DM','1Nly8NvcOyQYhoauSmi3EP2K8LsgJrCqc','1NdMV-mahnSjJqno4sJ2jzx8Pr9XlsM2v','1qMSqjRdpqe-NQ_k6zwXipmKbeJJ02ciT','11UuTIwykWKP0m4YuZD7NSGEnMk3iNNZw','1r2ov4z2n3Xq6uJJp1EEwQ-ItJOl9EumS','1psXvNi6qfIcN5DD1VFgj5w0inPok1urO','10LHLaxnm1E1emcmcEsP8B72Ipg1xq_M3','1Lx-HIpqTpQei2nmuHsf9_-gB7AZZ2JKk','1k8CFsbwN9dWKHxo8mKOmwyK27M9XZfMX','1fK9zuy7yxz-OgHCQeD88acuu_7KlRAsk','1ygBukFbnmDDzSb-N94oDUfPGBV6dFy-Y','1l8yBF_X0WUsBH4mEmFM1Gu2IPFSDDeHr','1C6yzLm46yH-2G_dHszX0RcgLFMTCuqsY','1lGUtTcRgNRTxaQyiVIvqp25mjpwbsiDB','1s-4yqmioSSBb0qU54O0yqr50tLP45ZTK','18D7Mo357mUhYyJ9yl0Jfno4mcd94cHA3','1hEECqqcg-S9r5JZKFniDsm4mOIumpifZ','1I_cH1m-4L5xHEk2znDhPzVkebPcfH_zm','1pDFNAMHkhqQBWg73oF5TOvW7U5voqxPu','1a-75zndFewvlM9LKZXbOgUI6RizUp7iD','1F79HE-ZVErwRoruodAexfCm1VA7I8nBh','1XlLFCrKE_9owk7AHTGVP3LMAdyjm7yOP','1pHHxMwiXFC3ozOzXJNxJGidSkrMYKH-T','107fE69xOy7w6jINQGq27QBZH70TQtnIk','163j8km-F4y24vqJzidjqP2q7tllASdnX','1DE653BtEBiFBaixFlEw-0sRJ2UUl_C2c','1YtecvFDgk-FqYQ1PObXIH8PVJfol-7M8','1OFsqJW98YuNummvG-8zsg19C2zAJjWTf','1jnJ6oAmZIN-ktoZUA-Ut10zJP9z-N1MA','1EDVI7XROj43ooGhJm-1l_5rWjuOJt6Md','1XJb7kAFTMsBz0qSpAEquZhhkAvpvScDB','1TjqRkL_0vr6Bo8S1x7ueBcVMl6l-hn7C','1DuhgKUauMF-PKESPKPjoMdpIFC4hVob7','1gl22H1eVZkK2tuRR3oz_OZE8plX7cV2S','1UJFQWFXgakd1S3k1vYGS98NaBEl3h_ej','1twTEQ_53yBUWfwJUFlo-bP3D4l4s_H5L','1UJ53BnEeJTiPdOIypr7ul48Jz9nu2xqk','1fdFrT7DWGCsPbP9G0kA_CQW3kIUhGPg1','1SR7ehKpLazbUOY0gVboJ41K1S3EQDOdh','1WtBHoaxt3Ki42AW8MaBMAj0XfnkC-OXj','1zzS-gYKPGbWTfHgqgtpys4W8j-AOp7yX','1K76jnBE693BzQuhRkxV_OdwCjEdUU5VE','1ti4iwIs4uigJ8BWRytskAcwQV1gejiI_','1j-Ls4IBwpFbgRNPiGxlKAD9mLuijvs4K','1QiA2dAw0aJz4nFpBd2QU07dCAkYuZ98j','10sq-PbmOOh_qFuXwi8JsigI9eanPvfku','1FLsaJCiZ0jtvMGiubfJZkKyUThLrbqg8','1KvQeEUowyS1ow9azMke8aFtdXuSLhnSG','1YBeUY86f9scW7n0vOfoQZVd0n7KYlb-V']
+  },
+  'sanrafael': {
+    label: '📁 Calle San Rafael (119 fotos)',
+    ids: ['1dQ4lghNzZMd4l85-QTaYWssjI8SPpqFV','1vvjjbbauoYMeF5qhRsb6dgMfgQJUqD8-','1cEasCh0rANk6YZpJcvnmxhVSyMeP9Mn2','1KOal42KtKxjttDgBOVe9v6MO-pZz5Hqf','1XhD53o78Kdk2TNI_jkuS-M3KHYW_6L5g','11CPJs8E3YR51rDj2wnmvWigZPROJfrFV','1SiCIwHknlGIKKihkhmn47C0LaVsiynOJ','1FUwUKvYwho2cBkPLV6Nz4DJBawu9SCj2','1jvqhuAj2C_8ggQ4F05O6f4RBdIK6daUv','1cPrReZy9T95g2M6O_-r01VXP7F0gdsxi','1npekFXdXNwy6awt4E4uGW9beP9lv08kK','1pn0PcFMqVCSpmBj4DIOREEaVJY3z5TB5','1ZxLn2SzKErUziHC4esgX-BMkMUkAQq-v','13SThdnVm2QhSO-buDQkknXZafgUCN1bL','1Mf6RYbEqtfZumwpANPmG-ts4a8h4xDRe','1Hd4TBdfqCnuXEsEzjhy3aFeTzM_SsJ78','1AOvWhroAo8pfWJMTxm26qtKH1UMnVsI7','1GV_qPqH4TwSuZktFbVHT50bEXwzHmPg3','1CeG4x9LUzJSGAvSUFzwgWGlixVpOHPAp','1jnIJZ8VpWk5-scxdCKuCKuDZsQ3dL0RX','1QGu9V_d8sFNwyCk2kJHpXID9N1U_QrVm','1cJIHQrVzFHTWHD03lHLf_exIEoORRRUn','1QFun6aZX6kwCCTN7A5hYRRZH_Apt-Pcf','116QTFktw-wO325EyylLTT8Yus1pW5tdf','1-Ah93qeqKKhZE8b_GTz8V8Nk936EGxT9','1TV9EvNaj4M8X4F5b8KY6fLCfS6DIyfUt','1ASHwJ4ZXCF_aWsp_GxEIT-xMaZfenEU8','1_9AbRsivxPY5HL1dIgq_AWDNRKZwc4uI','1N6mxpTDUq1WE6IqPqe-ZafULXZBRsQYm','1WQwiTpaZOER2PeH_YuSUwH8qlEFEYJ2k','1vto2zHm6TRvgH8hkjuaw-34ip_fnHoN-','1OjCaRQEUYtAudTTVg2QYvOwXwdKDb-AQ','1H6oPNQxnvgq2l2MdZ0GBa-PoPXz53yM-','1aFhO4DlnqGF2HNK7xW4Vrs3wUTZaAl5J','1MISIswE697iJzXvZsiQftiRVhE2d8X05','1SOJhQRsGOa4nbRA5gJyIGkmuhRLkFghY','1_SlIXMl_n6D5xo_qjsX7FUt4ocDd8m5Z','1DeQIBbBGHWfdFnMAihhWfK-8Hub-9BRK','1dQLlBgPInqAEE3WNYljcn7opOQylbt2y','1OrMTEhyxmu8kBheuE57gOVSEb2UrKKE2','1x0dnVzYk-9rLrUy8taUxk1dm2bgbSTCi','1zsrCbPswQq0S7T5i-SQhD69xt-Xu18Or','1VzjIi3fchxSaku90QdoeKqFYUvqcgIeh','1WllzZICQjJH60i3qY9JTJWKTOhRRraEK','18fXVtQEDoYobaGkjbzdX9pPsH98C2fGU','1Y_9J0OEF37T5sehxdQQqw_mfShkyPR8R','1DuLR_kC9ftCg2JanTomHGWNJZnE_gQRv','1xXNnjGesqarW-DJ-KUTE0vnHsE4I6TIQ','1W39uhWvlBis2qMLen1TG8YTqwkKyQt6L','1S5iK7G5PX9fFOIOudy4MrMQ8HinoI7ta','1tiVkVccfp-unSybh87Xj5UMoBe7PsamK','1r1V7I69shYJ4AFd0zjuaqT2cDS3Gsx-c','1YKeEOwAqQkdEeHIC8eHTlA-vqRuv-V37','1xkFpj9nB0L0EMRkx8X-p137Dk1hW5e6n','1M79WyJ_Dr0h5dWMqmk8zPegET0-yf-vN','1Qis65flIkjT2-Zm1nqxAY_RWXrszaCsq','1V3Cjg9NphZ1ZbZAEUqh7X17qcYxN36gO','15MGtAdqmbsEe0Eh_ptE0lj3sSMjCIS5O','1iTu80eJuhBjYbPqaL2GUE1kWDVDpq1sG','13UY7Xdw6s6fsmR55zCrma6hsWrJisvDj','1trZIqu1Hq2YLO1cp8--QhhQKkpAiozXq','1Iu2NfbDOL3Ld_iDtfd-Ur4LSfI7keIyq','1uFy4vub45PEDkWli8xI7VKxJhIS7_yRn','1_o3zVJ-oaCPLolJw-M9maklGbONafITd','1vb80z7ahjANgTc3g52k5Mv-FbMYM9eEx','1uHiVAVHRI4E9UqPbjoP9DG3INHsOYjJn','1psAXkzwPKUPCN_wlgE4OYET4j7GweETG','174pdqO13Iw7pnRsC-n-Ue0WuWMhzGeYO','165JoHBPmehec3N7_iMfeC584gyxHesJd','1JOOECnutM542dCKX_tf_hnHCn5OId6_D','1EWMWR4AHhhYlMsIO7b-iYVL2x0X1Dssk','11veVjqc7WSPyAvVhCYDObA7XEmDcxNdH','1SwNastVQsbbYkbn8xi7TwMZa8iakWeeO','1kLmwxn9lu4kUS_XdZrZyhzLS5lu5txnv','1SS5XaHT70z3NDNf1vyEHe1ki3-_pX4KH','11lCg_pwjtFXTo_5uzMVD7pDXlTeI6k19','1BTnGwMeXjKcDttZRE1_57timOGRNFCyr','1FDvspL8dEPm12wWmZbjzeWm9ZX75t79K','1Q5Hsml1sMfqCesfSEzn3L-RUvv6Zem67','1wMY4FkM-5IUYsrKhMT5hv28dMu0h7QRb','12EzkzO-yOmXgPp49qx837tK6q5mCqJ3T','1vViSHwMLZ9kaQdZEsC7oH-54gzn1rlTk','1cXs_K-bScPLt6rFWJQ6E-8Qmy64vvhWm','1-DKh9HIrbVOxCBEI498NlLJr-Wc8PgmY','16xaqTXaj7f7Y_zTiPoC9cjP5cYhf81Fe','121sdVpQCSjKLM863bh7Ozo66lubCBbvz','1Gw6SBBWDM3CJ1c4YCS6Borz4fydrMt0q','1ZS70ypsKqttEHcNq5FVokjdS6sFBoeHK','1JfAs6p5GEg9IAwiEar_m0U1abVhJAAFh','1fHtAB-J7p7K1qzPGtp4VgJhwe93hO_rw','10mh6MbeENxKD7yFeb3Z3lmQUViqkD2V1','1DSOv-YJ25mtXz3m_khRLTdJcW_y-NU_3','1n6tvwi4sa8iFdk-xU9RAs3NnjABrCOSf','1o0YDXefN6r6WxzFUJ8aefD1M3DX0FTNo','1nF362Yi0ds_W9W1LsqnQ4LHXwxELInl0','1uM7yqrS_kl5DchxRpHmlLIKoJapvvfQz','1PrEUMzy3c-7sULygFKNVOoNNSL5HCOLC','15mNUO47-0yoX9h3V8BXmsdcxBinBp8a5','1jOe6C7OcSc7CTEeB0uVmtcuY3MnwiaoN','11xbI4TItj8lLIi-aOn07DNbvWxVRYCJ0','1fSCOOCihWSyVnJjbe-guZZ1reoSxe9By','11UnbZb_nrCskxMjmdM_UZ9kG7i9dZmTu','1C5JCQdxm1IArxWWO8WppD_PJD0JcPKbA','1It8Xih4-kGlFNkCGCRH00iW3fPMbEwrw','1s_5prelTaWASOyGoLmt-QYTJ6XtA_BZS','1m0DU_OgBYeUhbOMeRon6orPHJFEp_KOc','19LUBAnQZvr5JjJ2w1aFNgjnDeCU6Y2K6','1sAwiUvMwPsc5VPNxuh679xBBhig12m7K','1s4VQbDxIaVY-4Uk6fNCF44G90QQg8LDp','17d5WifngyaIeBTSsmZbOIfhKy-ZO-iJN','1cK8lqR7wMFHPOARRTTowQRHr9f0txJxZ','1dJNHqC0Y1hNs1-muIMl_IEGJZJoc47GM','1tKe8Ayqe1WKIAQRksc_sG89EE4vaViGw','1kWX74KFQ0jwgFjR7OuDPEKFfItN0x0KG','1n-2WlR_fXXInuMvcNJ9Ui3ppK5d7yDtJ','16hAHolJSJFF20UmLKbOhMhe-3kwjLsPm','1d1cRntiolGALxNWFnCCZWMU6kM4sI_Mf','1vZCi8DLkf25kGD7ri7HBqE5wcIo_jLsl','1VQ-yBqlNzSM2uipf7cxwMWdpjhItc0wJ']
+  }
+};
+// Carpeta activa
+let carpetaActiva = 'real';
 
 /* ── HELPERS ── */
 // Datos: siempre service_role (bypasea RLS)
@@ -700,14 +587,28 @@ function doLogout(){
 
 /* ── INICIO (después de login) ── */
 function iniciar(){
-  // Rellenar textarea con IDs
-  document.getElementById('drive-ids').value=IDS.join('\n');
-  // Construir lista de fotos
-  fotos=IDS.map((id,i)=>({num:i+1,id,url:driveUrl(id)}));
+  cargarCarpeta('real');
+  loadEst();
+}
+
+function cambiarCarpeta(nombre){
+  carpetaActiva=nombre;
+  // Actualizar botones activos
+  ['real','rosario','sanrafael'].forEach(c=>{
+    const btn=document.getElementById('btn-'+c);
+    if(btn) btn.classList.toggle('active',c===nombre);
+  });
+  cargarCarpeta(nombre);
+}
+
+function cargarCarpeta(nombre){
+  const c=CARPETAS[nombre];
+  if(!c) return;
+  document.getElementById('drive-ids').value=c.ids.join('\n');
+  fotos=c.ids.map((id,i)=>({num:i+1,id,url:driveUrl(id)}));
   fotoIdx=0;
   mostrarFoto();
-  // Cargar establecimientos
-  loadEst();
+  toast(`${c.label} cargada`,'info');
 }
 
 /* ── RECARGAR FOTOS desde textarea (por si se añaden IDs 267-351) ── */
@@ -716,10 +617,12 @@ function cargarFotos(){
   if(!raw){toast('No hay IDs en el textarea','err');return;}
   const ids=raw.split(/[\n,;\s]+/).map(s=>s.trim()).filter(s=>s.length>15);
   if(!ids.length){toast('No se encontraron IDs válidos (mínimo 16 caracteres)','err');return;}
+  // Actualizar carpeta activa con los nuevos IDs
+  if(CARPETAS[carpetaActiva]) CARPETAS[carpetaActiva].ids=ids;
   fotos=ids.map((id,i)=>({num:i+1,id,url:driveUrl(id)}));
   fotoIdx=0;
   mostrarFoto();
-  toast(`✅ ${fotos.length} fotos cargadas`);
+  toast(`✅ ${fotos.length} fotos recargadas`);
 }
 
 /* ── MOSTRAR FOTO ACTUAL ── */
