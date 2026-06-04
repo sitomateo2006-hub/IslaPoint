@@ -669,7 +669,7 @@ select.fs option{background:var(--b8);color:#fff}
           <button class="cat-btn cat-otros" data-cat="otros" onclick="setCat(this,'otros')">🔹 Otros</button>
           <button class="cat-btn cat-noactivo" data-cat="noactivo" onclick="setCat(this,'noactivo')">🔴 No Activo</button>
         </div>
-        <button id="br">✕ Limpiar filtros</button>
+        <button id="br" onclick="limpiarFiltros()">✕ Limpiar filtros</button>
       </div>
       <div class="rh"><span class="rc">Mostrando <strong id="sc">0</strong> establecimientos</span></div>
       <div id="rl"><div class="ldr"><div class="sp"></div> Cargando…</div></div>
@@ -1150,9 +1150,12 @@ function getF(){
     const mz=checked.length===0||checked.includes(it.Calle);
     let mc=true;
     const est=(it.Estado||'').toLowerCase();
-    const esNoActivo=!est.trim()||est.includes('no activ')||est.includes('inactiv')||
-                     est.includes('cerrad')||est.includes('vacio')||est.includes('vacío')||
-                     (est.includes('local')&&!est.includes('activ'));
+    // Limpiar comillas residuales y detectar No Activo
+    const estLimpio=est.replace(/^"|"$/g,'').trim();
+    const esNoActivo=!estLimpio||estLimpio==='no activo'||estLimpio.includes('no activ')||
+                     estLimpio.includes('inactiv')||estLimpio.includes('cerrad')||
+                     estLimpio.includes('vacio')||estLimpio.includes('vacío')||
+                     (estLimpio.includes('local')&&!estLimpio.includes('activ'));
     if(categoriaActiva==='noactivo'){
       mc=esNoActivo;
     } else if(categoriaActiva==='otros'){
@@ -1227,16 +1230,16 @@ function renderList(data){
 
 document.getElementById('si').addEventListener('input',applyF);
 document.getElementById('fa').addEventListener('change',applyF);
-document.getElementById('br').addEventListener('click',()=>{
+function limpiarFiltros(){
   document.getElementById('si').value='';
   document.querySelectorAll('.cz').forEach(c=>c.checked=false);
-  // Resetear categoría
   categoriaActiva='';
   document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
   const todas=document.querySelector('.cat-btn.cat-todas');
   if(todas) todas.classList.add('active');
   applyF();
-});
+}
+document.getElementById('br').addEventListener('click', limpiarFiltros);
 </script>
 </body>
 </html>
