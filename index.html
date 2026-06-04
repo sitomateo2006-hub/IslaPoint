@@ -925,44 +925,39 @@ function pc(s){
 // ── Normalizar actividad ──
 // ── Mapa de actividad → categoría ──
 const CAT_MAP = {
-  // 👗 MODA
-  'moda': [
+  'moda':[
     'textil','textil (hombre)','textil (hombres)','textil (mujer)','textil (mujeres)',
     'textil (hombres y mujer)','textil (hombres y mujeres)','textil (todo tipo)',
-    'textil (bebés)','textil (vestido de novia)',
+    'textil (bebés)','textil (vestido de novia)','textil mujer','textil hombre',
+    'textil (hombres y mujer)','tienda textil',
     'zapatería','calzado','ropa','moda','boutique','lencería',
   ],
-  // 💍 COMPLEMENTOS
-  'complementos': [
+  'complementos':[
     'joyería','joyería / relojería','relojería','bisutería','óptica','ópticas',
-    'bolsos','complementos','accesorios','sombrerería','paragüería',
-    'mercería','cueros','piel',
+    'bolsos','complementos','accesorios','sombrerería','paragüería','mercería','cueros','piel',
   ],
-  // 🏥 SALUD Y BIENESTAR
-  'salud': [
+  'salud':[
     'farmacéutica','farmacia','clínica dental','dental','odontólogo',
     'fisioterapia','fisioterapeuta','podólogo / fisioterapia',
     'centro auditivo','audika (centro auditivo)','ortopedia','sanitaria',
-    'peluquería','estética','estetica','barbería','salud','médico','clínica',
-    'centro de estética','spa','gimnasio','herboristería','nutrición',
+    'peluquería','peluqueria','estética','estetica','barbería','barberia',
+    'salud','médico','clínica','centro de estética','spa','gimnasio',
+    'herboristería','nutrición','centro auditivo',
   ],
-  // 🍽️ RESTAURACIÓN
-  'restauracion': [
+  'restauracion':[
     'restaurante','cafetería','cafeteria','heladería','heladeria',
     'cervecería','cerveceria','hostelería','hosteleria','hotel',
     'pastelería','pasteleria','panadería','panaderia','bar','taberna',
     'churrería','frutería','alimentación','carnicería','pescadería',
-    'charcutería','supermercado','colmado',
+    'charcutería','supermercado','colmado','golosinas',
   ],
-  // 🎭 OCIO Y CULTURA
-  'ocio': [
+  'ocio':[
     'salón de juegos','juguetería','juguetes','librería','libros',
     'papelería','cuadros / pinturas','fotografía','música','videojuegos',
     'ocio','entretenimiento','cultura','academia de oposiciones',
     'autoescuela','floristería','bazar','quiosco','estanco','tabaco',
   ],
-  // 🏦 BANCO Y SERVICIOS
-  'banco': [
+  'banco':[
     'bancaria','banco','seguros','notaría','notaria','abogados',
     'correos','inss','gestoría','inmobiliaria','tecnocasa (inmobiliaria)',
     'servicios electrónicos','servicios electronicos','reparación móviles',
