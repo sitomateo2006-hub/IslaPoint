@@ -245,6 +245,24 @@ select.fs option{background:var(--b8);color:#fff}
 .b-ocio{background:#d1fae5;color:#065f46}
 .b-deporte{background:#ffedd5;color:#9a3412}
 .b-otro{background:#f1f5f9;color:#475569}
+/* Botones de categoría */
+.cat-btns{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.cat-btn{
+  padding:5px 10px;border:1.5px solid rgba(255,255,255,.15);
+  border-radius:20px;background:rgba(255,255,255,.08);
+  color:rgba(255,255,255,.75);font-family:'DM Sans',sans-serif;
+  font-size:11px;font-weight:600;cursor:pointer;transition:.15s;
+  white-space:nowrap;display:flex;align-items:center;gap:4px;
+}
+.cat-btn:hover{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)}
+.cat-btn.active{color:#fff;border-color:currentColor}
+.cat-btn.cat-todas.active{background:rgba(6,182,212,.3);border-color:var(--ac);color:var(--ac)}
+.cat-btn.cat-moda.active{background:rgba(236,72,153,.25);border-color:#ec4899;color:#f9a8d4}
+.cat-btn.cat-complementos.active{background:rgba(168,85,247,.25);border-color:#a855f7;color:#d8b4fe}
+.cat-btn.cat-salud.active{background:rgba(239,68,68,.25);border-color:#ef4444;color:#fca5a5}
+.cat-btn.cat-restauracion.active{background:rgba(245,158,11,.25);border-color:#f59e0b;color:#fcd34d}
+.cat-btn.cat-ocio.active{background:rgba(16,185,129,.25);border-color:#10b981;color:#6ee7b7}
+.cat-btn.cat-banco.active{background:rgba(37,99,235,.35);border-color:var(--b3);color:var(--b2)}
 .smsg{text-align:center;padding:30px 16px;color:var(--g4)}
 .smsg p{font-size:12px;line-height:1.6;margin-top:8px}
 .ldr{display:flex;align-items:center;justify-content:center;gap:6px;padding:24px;color:var(--b4);font-size:12px}
@@ -637,8 +655,16 @@ select.fs option{background:var(--b8);color:#fff}
         </div>
         <div class="fl">Calle</div>
         <div id="fz-wrap"></div>
-        <div class="fl" style="margin-top:4px">Actividad comercial</div>
-        <select class="fs" id="fa"><option value="">Todas las actividades</option></select>
+        <div class="fl" style="margin-top:6px">Categoría</div>
+        <div class="cat-btns" id="cat-btns">
+          <button class="cat-btn cat-todas active" data-cat="" onclick="setCat(this,'')">Todas</button>
+          <button class="cat-btn cat-moda" data-cat="moda" onclick="setCat(this,'moda')">👗 Moda</button>
+          <button class="cat-btn cat-complementos" data-cat="complementos" onclick="setCat(this,'complementos')">💍 Complementos</button>
+          <button class="cat-btn cat-salud" data-cat="salud" onclick="setCat(this,'salud')">🏥 Salud</button>
+          <button class="cat-btn cat-restauracion" data-cat="restauracion" onclick="setCat(this,'restauracion')">🍽️ Restauración</button>
+          <button class="cat-btn cat-ocio" data-cat="ocio" onclick="setCat(this,'ocio')">🎭 Ocio</button>
+          <button class="cat-btn cat-banco" data-cat="banco" onclick="setCat(this,'banco')">🏦 Banco</button>
+        </div>
         <button id="br">✕ Limpiar filtros</button>
       </div>
       <div class="rh"><span class="rc">Mostrando <strong id="sc">0</strong> establecimientos</span></div>
@@ -897,6 +923,74 @@ function pc(s){
 }
 
 // ── Normalizar actividad ──
+// ── Mapa de actividad → categoría ──
+const CAT_MAP = {
+  // 👗 MODA
+  'moda': [
+    'textil','textil (hombre)','textil (hombres)','textil (mujer)','textil (mujeres)',
+    'textil (hombres y mujer)','textil (hombres y mujeres)','textil (todo tipo)',
+    'textil (bebés)','textil (vestido de novia)',
+    'zapatería','calzado','ropa','moda','boutique','lencería',
+  ],
+  // 💍 COMPLEMENTOS
+  'complementos': [
+    'joyería','joyería / relojería','relojería','bisutería','óptica','ópticas',
+    'bolsos','complementos','accesorios','sombrerería','paragüería',
+    'mercería','cueros','piel',
+  ],
+  // 🏥 SALUD Y BIENESTAR
+  'salud': [
+    'farmacéutica','farmacia','clínica dental','dental','odontólogo',
+    'fisioterapia','fisioterapeuta','podólogo / fisioterapia',
+    'centro auditivo','audika (centro auditivo)','ortopedia','sanitaria',
+    'peluquería','estética','estetica','barbería','salud','médico','clínica',
+    'centro de estética','spa','gimnasio','herboristería','nutrición',
+  ],
+  // 🍽️ RESTAURACIÓN
+  'restauracion': [
+    'restaurante','cafetería','cafeteria','heladería','heladeria',
+    'cervecería','cerveceria','hostelería','hosteleria','hotel',
+    'pastelería','pasteleria','panadería','panaderia','bar','taberna',
+    'churrería','frutería','alimentación','carnicería','pescadería',
+    'charcutería','supermercado','colmado',
+  ],
+  // 🎭 OCIO Y CULTURA
+  'ocio': [
+    'salón de juegos','juguetería','juguetes','librería','libros',
+    'papelería','cuadros / pinturas','fotografía','música','videojuegos',
+    'ocio','entretenimiento','cultura','academia de oposiciones',
+    'autoescuela','floristería','bazar','quiosco','estanco','tabaco',
+  ],
+  // 🏦 BANCO Y SERVICIOS
+  'banco': [
+    'bancaria','banco','seguros','notaría','notaria','abogados',
+    'correos','inss','gestoría','inmobiliaria','tecnocasa (inmobiliaria)',
+    'servicios electrónicos','servicios electronicos','reparación móviles',
+    'telefonía','compañía de telefonía','compañia de telefono',
+    'compañía de teléfonos','compañia de teléfonos',
+    'administración','servicios','cerrajería','fontanería',
+  ],
+};
+
+function getCategoria(actividad){
+  if(!actividad) return '';
+  const v=normAct(actividad).toLowerCase();
+  const raw=actividad.trim().toLowerCase();
+  for(const [cat,lista] of Object.entries(CAT_MAP)){
+    if(lista.includes(v)||lista.includes(raw)) return cat;
+  }
+  return '';
+}
+
+let categoriaActiva='';
+
+function setCat(btn, cat){
+  categoriaActiva=cat;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  applyF();
+}
+
 function normAct(a){
   if(!a) return '';
   const n={
@@ -1039,11 +1133,11 @@ function hlCard(sid){
 function getF(){
   const q=document.getElementById('si').value.toLowerCase().trim();
   const checked=[...document.querySelectorAll('.cz:checked')].map(c=>c.value);
-  const a=document.getElementById('fa').value;
   return allData.filter(it=>{
     const mq=!q||(it.Nombre||'').toLowerCase().includes(q)||(it.Calle||'').toLowerCase().includes(q);
     const mz=checked.length===0||checked.includes(it.Calle);
-    return mq&&mz&&(!a||normAct(it.Actividad)===a);
+    const mc=!categoriaActiva||getCategoria(it.Actividad)===categoriaActiva;
+    return mq&&mz&&mc;
   });
 }
 
@@ -1063,9 +1157,7 @@ function popSel(data){
     lbl.appendChild(document.createTextNode(z));
     wrap.appendChild(lbl);
   });
-  const acts=[...new Set(data.map(d=>normAct(d.Actividad)).filter(Boolean))].sort();
-  const aEl=document.getElementById('fa');
-  acts.forEach(a=>{ const o=document.createElement('option'); o.value=a; o.textContent=a; aEl.appendChild(o); });
+  // El filtro por actividad ahora es por categoría (botones) — no se puebla el select
 }
 
 async function loadData(){
@@ -1114,7 +1206,11 @@ document.getElementById('fa').addEventListener('change',applyF);
 document.getElementById('br').addEventListener('click',()=>{
   document.getElementById('si').value='';
   document.querySelectorAll('.cz').forEach(c=>c.checked=false);
-  document.getElementById('fa').value='';
+  // Resetear categoría
+  categoriaActiva='';
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  const todas=document.querySelector('.cat-btn.cat-todas');
+  if(todas) todas.classList.add('active');
   applyF();
 });
 </script>
