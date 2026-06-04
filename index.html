@@ -263,6 +263,8 @@ select.fs option{background:var(--b8);color:#fff}
 .cat-btn.cat-restauracion.active{background:rgba(245,158,11,.25);border-color:#f59e0b;color:#fcd34d}
 .cat-btn.cat-ocio.active{background:rgba(16,185,129,.25);border-color:#10b981;color:#6ee7b7}
 .cat-btn.cat-banco.active{background:rgba(37,99,235,.35);border-color:var(--b3);color:var(--b2)}
+.cat-btn.cat-otros.active{background:rgba(148,163,184,.25);border-color:#94a3b8;color:#cbd5e1}
+.cat-btn.cat-noactivo.active{background:rgba(220,38,38,.25);border-color:#ef4444;color:#fca5a5}
 .smsg{text-align:center;padding:30px 16px;color:var(--g4)}
 .smsg p{font-size:12px;line-height:1.6;margin-top:8px}
 .ldr{display:flex;align-items:center;justify-content:center;gap:6px;padding:24px;color:var(--b4);font-size:12px}
@@ -664,6 +666,8 @@ select.fs option{background:var(--b8);color:#fff}
           <button class="cat-btn cat-restauracion" data-cat="restauracion" onclick="setCat(this,'restauracion')">🍽️ Restauración</button>
           <button class="cat-btn cat-ocio" data-cat="ocio" onclick="setCat(this,'ocio')">🎭 Ocio</button>
           <button class="cat-btn cat-banco" data-cat="banco" onclick="setCat(this,'banco')">🏦 Banco</button>
+          <button class="cat-btn cat-otros" data-cat="otros" onclick="setCat(this,'otros')">🔹 Otros</button>
+          <button class="cat-btn cat-noactivo" data-cat="noactivo" onclick="setCat(this,'noactivo')">🔴 No Activo</button>
         </div>
         <button id="br">✕ Limpiar filtros</button>
       </div>
@@ -929,52 +933,65 @@ const CAT_MAP = {
     'textil','textil (hombre)','textil (hombres)','textil (mujer)','textil (mujeres)',
     'textil (hombres y mujer)','textil (hombres y mujeres)','textil (todo tipo)',
     'textil (bebés)','textil (vestido de novia)','textil mujer','textil hombre',
-    'textil (hombres y mujer)','tienda textil',
-    'zapatería','calzado','ropa','moda','boutique','lencería',
+    'tienda textil','zapatería','calzado','ropa','moda','boutique','lencería',
+    'confección','sastrería','tintorería','lavandería',
   ],
   'complementos':[
     'joyería','joyería / relojería','relojería','bisutería','óptica','ópticas',
-    'bolsos','complementos','accesorios','sombrerería','paragüería','mercería','cueros','piel',
+    'bolsos','complementos','accesorios','sombrerería','paragüería',
+    'mercería','cueros','piel','marroquinería',
   ],
   'salud':[
     'farmacéutica','farmacia','clínica dental','dental','odontólogo',
-    'fisioterapia','fisioterapeuta','podólogo / fisioterapia',
+    'fisioterapia','fisioterapeuta','podólogo / fisioterapia','podólogo',
     'centro auditivo','audika (centro auditivo)','ortopedia','sanitaria',
     'peluquería','peluqueria','estética','estetica','barbería','barberia',
     'salud','médico','clínica','centro de estética','spa','gimnasio',
-    'herboristería','nutrición','centro auditivo',
+    'herboristería','nutrición','dietética','psicología','veterinaria',
+    'óptica','centro médico','fisioterapia',
   ],
   'restauracion':[
     'restaurante','cafetería','cafeteria','heladería','heladeria',
     'cervecería','cerveceria','hostelería','hosteleria','hotel',
     'pastelería','pasteleria','panadería','panaderia','bar','taberna',
-    'churrería','frutería','alimentación','carnicería','pescadería',
+    'churrería','frutería','fruteria','alimentación','alimentacion',
+    'carnicería','carniceria','pescadería','pescaderia',
     'charcutería','supermercado','colmado','golosinas',
+    'ultramarinos','tienda de alimentación','comida para llevar',
+    'pollería','verdulería','frutería y verdulería',
   ],
   'ocio':[
     'salón de juegos','juguetería','juguetes','librería','libros',
-    'papelería','cuadros / pinturas','fotografía','música','videojuegos',
-    'ocio','entretenimiento','cultura','academia de oposiciones',
-    'autoescuela','floristería','bazar','quiosco','estanco','tabaco',
+    'papelería','papeleria','cuadros / pinturas','fotografía','fotografia',
+    'música','musica','videojuegos','ocio','entretenimiento','cultura',
+    'academia de oposiciones','autoescuela','floristería','floreria',
+    'bazar','quiosco','estanco','tabaco','lotería','loteria',
+    'administración de lotería','administración de loterías',
+    'tienda de juegos','manualidades','artesanía',
   ],
   'banco':[
     'bancaria','banco','seguros','notaría','notaria','abogados',
-    'correos','inss','gestoría','inmobiliaria','tecnocasa (inmobiliaria)',
-    'servicios electrónicos','servicios electronicos','reparación móviles',
+    'correos','inss','gestoría','gestoria','inmobiliaria',
+    'tecnocasa (inmobiliaria)','agencia inmobiliaria',
+    'servicios electrónicos','servicios electronicos',
+    'reparación móviles','reparaciones de móviles','móviles',
     'telefonía','compañía de telefonía','compañia de telefono',
     'compañía de teléfonos','compañia de teléfonos',
     'administración','servicios','cerrajería','fontanería',
+    'electricista','pintura','reformas','construcción',
+    'asesoría','consultoría','agencia de viajes','viajes',
+    'estudio de fotografía','estudio de fotografia',
   ],
 };
 
 function getCategoria(actividad){
-  if(!actividad) return '';
+  if(!actividad||!actividad.trim()||actividad.trim()==='-'||actividad.trim()==='--') return 'otros';
   const v=normAct(actividad).toLowerCase();
   const raw=actividad.trim().toLowerCase();
   for(const [cat,lista] of Object.entries(CAT_MAP)){
     if(lista.includes(v)||lista.includes(raw)) return cat;
   }
-  return '';
+  return 'otros';
 }
 
 let categoriaActiva='';
@@ -1131,7 +1148,19 @@ function getF(){
   return allData.filter(it=>{
     const mq=!q||(it.Nombre||'').toLowerCase().includes(q)||(it.Calle||'').toLowerCase().includes(q);
     const mz=checked.length===0||checked.includes(it.Calle);
-    const mc=!categoriaActiva||getCategoria(it.Actividad)===categoriaActiva;
+    let mc=true;
+    const est=(it.Estado||'').toLowerCase();
+    const esNoActivo=!est.trim()||est.includes('no activ')||est.includes('inactiv')||
+                     est.includes('cerrad')||est.includes('vacio')||est.includes('vacío')||
+                     (est.includes('local')&&!est.includes('activ'));
+    if(categoriaActiva==='noactivo'){
+      mc=esNoActivo;
+    } else if(categoriaActiva==='otros'){
+      // Otros: activos sin categoría conocida
+      mc=!esNoActivo && getCategoria(it.Actividad)==='otros';
+    } else {
+      mc=!categoriaActiva||getCategoria(it.Actividad)===categoriaActiva;
+    }
     return mq&&mz&&mc;
   });
 }
