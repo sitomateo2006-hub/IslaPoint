@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IslaPoint — Informe de Establecimientos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ── BASE ── */
+:root{
+  --b9:#0a1628;--b8:#0d1f3c;--b7:#102a52;--b4:#2563eb;--b5:#1e4fa3;
+  --b2:#93c5fd;--b0:#eff6ff;--ac:#06b6d4;
+  --g1:#f1f5f9;--g2:#e2e8f0;--g4:#94a3b8;--g6:#475569;
+  --green:#16a34a;--glight:#dcfce7;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--g1);color:#1e293b;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+/* ── LOGIN ── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;position:fixed;inset:0;z-index:999;background:linear-gradient(145deg,#0a1628,#0d2347);padding:16px}
+.lbox{background:#fff;border-radius:20px;padding:36px 32px 28px;width:100%;max-width:380px;box-shadow:0 24px 60px rgba(0,0,0,.4);text-align:center}
+.llogo{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:20px}
+.llogo img{height:50px;object-fit:contain}
+.llogo-text{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#0a1628}
+.llogo-text span{color:#06b6d4}
+.lf{margin-bottom:14px;text-align:left}
+.lf label{display:block;font-size:11px;font-weight:700;color:var(--g6);margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px}
+.lf input{width:100%;padding:13px 14px;border:1.5px solid var(--g2);border-radius:8px;font-size:16px;outline:none;transition:.2s}
+.lf input:focus{border-color:var(--b4);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.lbtn{width:100%;padding:13px;background:linear-gradient(135deg,var(--b4),var(--b5));color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;min-height:48px}
+.lbtn:disabled{opacity:.6;cursor:not-allowed}
+.lerr{display:none;margin-top:10px;padding:10px;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;color:#dc2626;font-size:13px}
+
+/* ── APP ── */
+#app{display:none}
+
+/* ── TOOLBAR ── */
+.toolbar{background:linear-gradient(135deg,var(--b9),var(--b8));padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tlogo{display:flex;align-items:center;gap:10px}
+.tlogo img{height:28px}
+.tlogo-text{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff}
+.tlogo-text span{color:var(--ac)}
+.tbadge{font-size:11px;color:var(--b2);background:rgba(37,99,235,.2);border:1px solid rgba(37,99,235,.3);padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.8px}
+.tbtns{display:flex;gap:8px;flex-wrap:wrap}
+.tbtn{padding:9px 18px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tbtn-excel{background:#16a34a;color:#fff}
+.tbtn-excel:hover{background:#15803d}
+.tbtn-pdf{background:#dc2626;color:#fff}
+.tbtn-pdf:hover{background:#b91c1c}
+.tbtn-reload{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2)}
+.tbtn-reload:hover{background:rgba(255,255,255,.2)}
+.tbtn:disabled{opacity:.4;cursor:not-allowed}
+.tout{padding:8px 14px;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.3);border-radius:6px;color:#fca5a5;font-size:11px;font-weight:600;cursor:pointer}
+
+/* ── CONTENIDO ── */
+.contenido{max-width:1200px;margin:0 auto;padding:24px}
+
+/* ── CABECERA INFORME ── */
+.informe-header{background:#fff;border-radius:14px;padding:24px 28px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.ih-left{}
+.ih-titulo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--b9);margin-bottom:4px}
+.ih-sub{font-size:13px;color:var(--g4)}
+.ih-fecha{font-size:12px;color:var(--g4);text-align:right}
+
+/* ── STATS GRID ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}
+.stat-card{background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 2px 12px rgba(0,0,0,.06);text-align:center}
+.stat-num{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--b4);line-height:1}
+.stat-label{font-size:12px;color:var(--g4);margin-top:6px;font-weight:500}
+.stat-card.verde .stat-num{color:var(--green)}
+.stat-card.naranja .stat-num{color:#f59e0b}
+.stat-card.rojo .stat-num{color:#dc2626}
+.stat-card.cyan .stat-num{color:var(--ac)}
+
+/* ── SECCIONES ── */
+.seccion{background:#fff;border-radius:14px;padding:20px 24px;margin-bottom:18px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.sec-titulo{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--b9);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sec-titulo::after{content:'';flex:1;height:1px;background:var(--g2)}
+
+/* ── BARRAS DE DISTRIBUCIÓN ── */
+.dist-item{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.dist-label{font-size:12px;color:var(--g6);width:160px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dist-bar-wrap{flex:1;height:20px;background:var(--g1);border-radius:10px;overflow:hidden}
+.dist-bar{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--b4),var(--ac));transition:width .4s ease;min-width:3px}
+.dist-val{font-size:12px;font-weight:600;color:var(--g6);width:50px;text-align:right;flex-shrink:0}
+.dist-pct{font-size:11px;color:var(--g4);width:36px;text-align:right;flex-shrink:0}
+
+/* ── TABLA PRINCIPAL ── */
+.tabla-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--b8);color:#fff;padding:10px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+tbody tr:nth-child(even){background:#f8fafc}
+tbody tr:hover{background:var(--b0)}
+tbody td{padding:9px 12px;border-bottom:1px solid var(--g2);vertical-align:middle}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase}
+.badge-activo{background:#dcfce7;color:#166534}
+.badge-inactivo{background:#fee2e2;color:#991b1b}
+.badge-obra{background:#fef3c7;color:#92400e}
+.foto-si{color:var(--green);font-size:14px}
+.foto-no{color:#dc2626;font-size:14px}
+
+/* ── LOADER ── */
+.loader{text-align:center;padding:60px;color:var(--g4)}
+.sp{display:inline-block;width:20px;height:20px;border:2px solid var(--g2);border-top-color:var(--b4);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── PRINT ── */
+@media print{
+  @page{size:A4 landscape;margin:8mm 6mm}
+  .toolbar,.tbtn,.tout{display:none!important}
+  body{background:#fff;font-size:10px}
+  .contenido{padding:0;max-width:100%;width:100%}
+  .seccion,.stat-card,.informe-header{box-shadow:none;border:1px solid #e2e8f0;break-inside:avoid}
+  .stats-grid{grid-template-columns:repeat(4,1fr);gap:6px}
+  .stat-card{padding:8px 6px}
+  .stat-num{font-size:18px}
+  .stat-label{font-size:9px}
+  .dist-grid{grid-template-columns:1fr 1fr!important}
+  .informe-header{padding:10px 14px}
+  .ih-titulo{font-size:15px}
+  /* Tabla — ocultar columnas Categoría y Foto en PDF para que quepa */
+  thead th:nth-child(7),tbody td:nth-child(7){display:none} /* Categoría */
+  thead th:last-child,tbody td:last-child{display:none}     /* Foto */
+  thead th{
+    background:#0d1f3c!important;
+    -webkit-print-color-adjust:exact;
+    padding:5px 6px;font-size:9px;
+    white-space:nowrap;
+  }
+  tbody td{padding:4px 6px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  table{width:100%;table-layout:fixed;border-collapse:collapse}
+  /* Anchos ajustados para 7 columnas visibles en A4 landscape */
+  thead th:nth-child(1){width:4%}   /* # */
+  thead th:nth-child(2){width:7%}   /* Código */
+  thead th:nth-child(3){width:24%}  /* Nombre */
+  thead th:nth-child(4){width:18%}  /* Calle */
+  thead th:nth-child(5){width:5%}   /* Nº */
+  thead th:nth-child(6){width:22%}  /* Actividad */
+  thead th:nth-child(8){width:12%}  /* Estado */
+  /* Nombre e-italic si sin nombre */
+  tbody td:nth-child(3){max-width:0}
+  tbody tr:nth-child(even){background:#f8fafc!important;-webkit-print-color-adjust:exact}
+  .dist-bar{-webkit-print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .badge{font-size:8px;padding:1px 4px}
+  a{text-decoration:none;color:inherit}
+  /* Estadísticas en primera página, tabla en página nueva */
+  .seccion:last-child{break-before:page}
+}
+
+@media(max-width:600px){
+  .toolbar{padding:12px 14px}
+  .contenido{padding:14px}
+  .tlogo-text{font-size:14px}
+  .tbadge{display:none}
+  .informe-header{flex-direction:column}
+  .ih-fecha{text-align:left}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="lbox">
+    <div class="llogo">
+      <img src="https://raw.githubusercontent.com/sitomateo2006-hub/IslaPoint/main/logo.jpg" alt="IslaPoint"/>
+      <span class="llogo-text">Isla<span>Point</span></span>
+    </div>
+    <div class="lf">
+      <label>Contraseña de administrador</label>
+      <input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="lbtn" id="l-btn" onclick="doLogin()">Generar informe</button>
+    <div class="lerr" id="l-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="toolbar">
+    <div class="tlogo">
+      <img src="https://raw.githubusercontent.com/sitomateo2006-hub/IslaPoint/main/logo.jpg" alt="IslaPoint"/>
+      <span class="tlogo-text">Isla<span>Point</span></span>
+      <span class="tbadge">Informe de establecimientos</span>
+    </div>
+    <div class="tbtns">
+      <button class="tbtn tbtn-reload" id="btn-reload" onclick="cargarDatos()">↺ Actualizar</button>
+      <button class="tbtn tbtn-excel" id="btn-excel" onclick="exportarExcel()" disabled>⬇ Excel</button>
+      <button class="tbtn tbtn-pdf" id="btn-pdf" onclick="exportarPDF()" disabled>⬇ PDF</button>
+      <button class="tout" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="contenido" id="contenido">
+    <div class="loader"><span class="sp"></span>Cargando datos…</div>
+  </div>
+</div>
+
+<script>
+const URL_SB='https://qqsmojwgkgcemhvjcwgx.supabase.co';
+const KEY_SRV='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxc21vandna2djZW1odmpjd2d4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTY5ODI4MywiZXhwIjoyMDk1Mjc0MjgzfQ.SBbsxPyYvcSKQOG_QG3EJGgmjd_RpEd3h9wg1LWWNps';
+const KEY_SB='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxc21vandna2djZW1odmpjd2d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2OTgyODMsImV4cCI6MjA5NTI3NDI4M30.lGrIWt3w8CRtWCkRPFCDjgbP4GhS2m-1X6l26IKqbA8';
+const TABLE='IslaPoint';
+let allData=[];
+
+/* ── AUTH ── */
+async function doLogin(){
+  const pass=document.getElementById('l-pass').value.trim();
+  const btn=document.getElementById('l-btn');
+  const err=document.getElementById('l-err');
+  if(!pass){err.textContent='Introduce la contraseña';err.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Verificando…';err.style.display='none';
+  try{
+    // Verificar contraseña contra Supabase Auth con anon key
+    const res=await fetch(`${URL_SB}/auth/v1/token?grant_type=password`,{
+      method:'POST',
+      headers:{'apikey':KEY_SB,'Content-Type':'application/json'},
+      body:JSON.stringify({email:'adminislapoint@gmail.com',password:pass})
+    });
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error_description||data.message||'Contraseña incorrecta');
+    // Verificar que es admin en tabla perfiles
+    const pRes=await fetch(`${URL_SB}/rest/v1/perfiles?email=eq.adminislapoint@gmail.com&select=rol`,{
+      headers:{'apikey':KEY_SRV,'Authorization':'Bearer '+KEY_SRV}
+    });
+    const perfiles=await pRes.json();
+    if(!perfiles.length||perfiles[0].rol!=='admin') throw new Error('No tienes permisos de administrador');
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    cargarDatos();
+  }catch(e){err.textContent=e.message;err.style.display='block';}
+  finally{btn.disabled=false;btn.textContent='Generar informe';}
+}
+
+function doLogout(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('l-pass').value='';
+  allData=[];
+}
+
+/* ── CARGAR DATOS ── */
+async function cargarDatos(){
+  document.getElementById('contenido').innerHTML='<div class="loader"><span class="sp"></span>Cargando datos de Supabase…</div>';
+  document.getElementById('btn-excel').disabled=true;
+  document.getElementById('btn-pdf').disabled=true;
+  try{
+    let all=[],from=0;
+    while(true){
+      const res=await fetch(`${URL_SB}/rest/v1/${TABLE}?select=*&order=Codigo.asc&offset=${from}&limit=1000`,{
+        headers:{'apikey':KEY_SRV,'Authorization':'Bearer '+KEY_SRV}
+      });
+      const txt=await res.text();
+      if(!res.ok) throw new Error('HTTP '+res.status+': '+txt.slice(0,100));
+      const batch=JSON.parse(txt);
+      if(!Array.isArray(batch)||!batch.length) break;
+      all=all.concat(batch);
+      if(batch.length<1000) break;
+      from+=1000;
+    }
+    allData=all;
+    renderInforme(allData);
+    document.getElementById('btn-excel').disabled=false;
+    document.getElementById('btn-pdf').disabled=false;
+  }catch(e){
+    document.getElementById('contenido').innerHTML=`<div class="loader" style="color:#dc2626">❌ Error: ${e.message}</div>`;
+  }
+}
+
+/* ── HELPERS ── */
+function normAct(a){
+  if(!a) return 'Sin actividad';
+  const m={
+    'banco':'Bancaria','bancaria':'Bancaria','cafeteria':'Cafetería','cafetería':'Cafetería',
+    'joyeria':'Joyería','joyería':'Joyería','pasteleria':'Pastelería','pastelería':'Pastelería',
+    'estetica':'Estética','estética':'Estética','cerveceria':'Cervecería','cervecería':'Cervecería',
+    'notaria':'Notaría','notaría':'Notaría','librería':'Librería','libros':'Librería',
+    'textil (hombre)':'Textil','textil (mujer)':'Textil','textil (todo tipo)':'Textil',
+    'textil':'Textil','tabaco':'Estanco','estanco':'Estanco',
+  };
+  return m[a.trim().toLowerCase()]||a.trim();
+}
+
+// ── Categorías (igual que en index.html) ──
+const CAT_MAP = {
+  'moda':[
+    'textil','textil (hombre)','textil (hombres)','textil (mujer)','textil (mujeres)',
+    'textil (hombres y mujer)','textil (hombres y mujeres)','textil (todo tipo)',
+    'textil (bebés)','textil (vestido de novia)','textil mujer','textil hombre',
+    'tienda textil','zapatería','calzado','ropa','moda','boutique','lencería',
+    'confección','sastrería','tintorería','lavandería',
+  ],
+  'complementos':[
+    'joyería','joyería / relojería','relojería','bisutería','óptica','ópticas',
+    'bolsos','complementos','accesorios','sombrerería','paragüería',
+    'mercería','cueros','piel','marroquinería',
+  ],
+  'salud':[
+    'farmacéutica','farmacia','clínica dental','dental','odontólogo',
+    'fisioterapia','fisioterapeuta','podólogo / fisioterapia','podólogo',
+    'centro auditivo','audika (centro auditivo)','ortopedia','sanitaria',
+    'peluquería','peluqueria','estética','estetica','barbería','barberia',
+    'salud','médico','clínica','centro de estética','spa','gimnasio',
+    'herboristería','nutrición','dietética','psicología','veterinaria',
+    'óptica','centro médico','fisioterapia',
+  ],
+  'restauracion':[
+    'restaurante','cafetería','cafeteria','heladería','heladeria',
+    'cervecería','cerveceria','hostelería','hosteleria','hotel',
+    'pastelería','pasteleria','panadería','panaderia','bar','taberna',
+    'churrería','frutería','fruteria','alimentación','alimentacion',
+    'carnicería','carniceria','pescadería','pescaderia',
+    'charcutería','supermercado','colmado','golosinas',
+    'ultramarinos','tienda de alimentación','comida para llevar',
+    'pollería','verdulería','frutería y verdulería',
+  ],
+  'ocio':[
+    'salón de juegos','juguetería','juguetes','librería','libros',
+    'papelería','papeleria','cuadros / pinturas','fotografía','fotografia',
+    'música','musica','videojuegos','ocio','entretenimiento','cultura',
+    'academia de oposiciones','autoescuela','floristería','floreria',
+    'bazar','quiosco','estanco','tabaco','lotería','loteria',
+    'administración de lotería','administración de loterías',
+    'tienda de juegos','manualidades','artesanía',
+  ],
+  'banco':[
+    'bancaria','banco','seguros','notaría','notaria','abogados',
+    'correos','inss','gestoría','gestoria','inmobiliaria',
+    'tecnocasa (inmobiliaria)','agencia inmobiliaria',
+    'servicios electrónicos','servicios electronicos',
+    'reparación móviles','reparaciones de móviles','móviles',
+    'telefonía','compañía de telefonía','compañia de telefono',
+    'compañía de teléfonos','compañia de teléfonos',
+    'administración','servicios','cerrajería','fontanería',
+    'electricista','pintura','reformas','construcción',
+    'asesoría','consultoría','agencia de viajes','viajes',
+    'estudio de fotografía','estudio de fotografia',
+  ],
+};
+
+const CAT_LABELS = {
+  'moda':'👗 Moda','complementos':'💍 Complementos',
+  'salud':'🏥 Salud y Bienestar','restauracion':'🍽️ Restauración',
+  'ocio':'🎭 Ocio y Cultura','banco':'🏦 Banco y Servicios',
+};
+
+function getCategoria(actividad){
+  if(!actividad||!actividad.trim()||actividad.trim()==='-'||actividad.trim()==='--') return 'otros';
+  const v=normAct(actividad).toLowerCase();
+  const raw=actividad.trim().toLowerCase();
+  for(const [cat,lista] of Object.entries(CAT_MAP)){
+    if(lista.includes(v)||lista.includes(raw)) return cat;
+  }
+  return 'otros';
+}
+
+function getCategoriaLabel(actividad){
+  const c=getCategoria(actividad);
+  return CAT_LABELS[c]||'🔹 Otros';
+}
+
+function contarPor(datos, campo, normFn){
+  const mapa={};
+  datos.forEach(d=>{
+    const v=normFn?(normFn(d[campo])||'Sin datos'):(d[campo]||'Sin datos');
+    mapa[v]=(mapa[v]||0)+1;
+  });
+  return Object.entries(mapa).sort((a,b)=>b[1]-a[1]);
+}
+
+function normEstado(e){
+  if(!e||!e.trim()||e.trim()==='-'||e.trim()==='--') return 'No Activo';
+  // Quitar comillas residuales por si acaso
+  const limpio=e.trim().replace(/^"|"$/g,'').trim();
+  const l=limpio.toLowerCase();
+  if(l.includes('obra')||l.includes('reform')) return 'En obras / Reforma';
+  if(l.includes('no activ')||l.includes('inactiv')||l.includes('cerrad')||
+     l.includes('vacío')||l.includes('vacio')||l.includes('local')) return 'No Activo';
+  if(l.includes('activ')) return 'Activo';
+  return 'No Activo';
+}
+
+function badgeEstado(e){
+  const n=normEstado(e);
+  if(n==='Activo') return `<span class="badge badge-activo">Activo</span>`;
+  if(n==='En obras / Reforma') return `<span class="badge badge-obra">En obras</span>`;
+  return `<span class="badge badge-inactivo">No Activo</span>`;
+}
+
+function normalizarCounts(counts){
+  const merged={};
+  counts.forEach(([k,v])=>{
+    const key=(!k||k==='-'||k==='--'||k.toLowerCase()==='sin actividad'||k.toLowerCase()==='sin datos')?'Sin datos':k;
+    merged[key]=(merged[key]||0)+v;
+  });
+  return Object.entries(merged).sort((a,b)=>b[1]-a[1]);
+}
+
+// Barras horizontales estéticas (para calles)
+function barras(datos,titulo,icono,campo,normFn){
+  const counts=normalizarCounts(contarPor(datos,campo,normFn));
+  const total=datos.length;
+  const max=counts[0]?counts[0][1]:1;
+  return `<div class="seccion" style="padding:16px 20px">
+    <div class="sec-titulo">${icono} ${titulo}</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+    ${counts.map(([k,v])=>{
+      const pct=Math.round(v/total*100);
+      const w=Math.round(v/max*100);
+      return `<div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:12px;color:var(--g6);width:120px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${k}</span>
+        <div style="flex:1;height:22px;background:var(--g1);border-radius:6px;overflow:hidden">
+          <div style="height:100%;width:${w}%;background:linear-gradient(90deg,var(--b4),var(--ac));border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;min-width:28px">
+            <span style="font-size:11px;font-weight:700;color:#fff">${v}</span>
+          </div>
+        </div>
+        <span style="font-size:11px;color:var(--g4);width:32px;text-align:right;flex-shrink:0">${pct}%</span>
+      </div>`;
+    }).join('')}
+    </div>
+  </div>`;
+}
+
+// Tabla compacta en 3 columnas (para actividades)
+function tablaActividades(datos,titulo,icono,campo,normFn){
+  const counts=normalizarCounts(contarPor(datos,campo,normFn));
+  const total=datos.length;
+  const cols=3;
+  const rows=[];
+  for(let i=0;i<counts.length;i+=cols) rows.push(counts.slice(i,i+cols));
+  return `<div class="seccion" style="padding:16px 20px">
+    <div class="sec-titulo">${icono} ${titulo} <span style="font-size:11px;color:var(--g4);font-weight:400">(${counts.length} tipos)</span></div>
+    <table style="width:100%;border-collapse:collapse">
+      ${rows.map(row=>`<tr>
+        ${row.map(([k,v])=>`
+          <td style="padding:5px 6px;border-bottom:1px solid var(--g2);width:30%">
+            <span style="font-size:12px;color:var(--g6)">${k}</span>
+          </td>
+          <td style="padding:5px 6px;border-bottom:1px solid var(--g2);width:3%;text-align:right;white-space:nowrap">
+            <span style="font-size:12px;font-weight:700;color:var(--b4)">${v}</span>
+            <span style="font-size:10px;color:var(--g4)"> ${Math.round(v/total*100)}%</span>
+          </td>`).join('')}
+        ${row.length<cols?`<td colspan="${(cols-row.length)*2}" style="border-bottom:1px solid var(--g2)"></td>`:''}
+      </tr>`).join('')}
+    </table>
+  </div>`;
+}
+
+/* ── RENDER ── */
+function renderInforme(datos){
+  const total=datos.length;
+  const conFoto=datos.filter(d=>d['Foto-URL']).length;
+  const sinFoto=total-conFoto;
+  const activos=datos.filter(d=>(d.Estado||'').toLowerCase().includes('activ')).length;
+  const sinNombre=datos.filter(d=>!d.Nombre||!d.Nombre.trim()).length;
+  const sinCoords=datos.filter(d=>!d.Coordenadas||!d.Coordenadas.trim()).length;
+  const fecha=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
+  const hora=new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+
+  let html=`
+  <!-- CABECERA -->
+  <div class="informe-header">
+    <div class="ih-left">
+      <div class="ih-titulo">📋 Informe de Establecimientos</div>
+      <div class="ih-sub">IslaPoint — Directorio comercial de San Fernando, Cádiz</div>
+    </div>
+    <div class="ih-fecha">
+      Generado el <strong>${fecha}</strong> a las ${hora}<br>
+      <span style="color:var(--b4);font-weight:600">${total} establecimientos registrados</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total establecimientos</div></div>
+    <div class="stat-card verde"><div class="stat-num">${activos}</div><div class="stat-label">Activos</div></div>
+    <div class="stat-card"><div class="stat-num">${[...new Set(datos.map(d=>d.Calle).filter(Boolean))].length}</div><div class="stat-label">Calles</div></div>
+    <div class="stat-card"><div class="stat-num">${[...new Set(datos.map(d=>normAct(d.Actividad)).filter(Boolean))].length}</div><div class="stat-label">Actividades</div></div>
+  </div>
+
+  <!-- STATS CATEGORÍAS -->
+  ${(()=>{
+    const cats=Object.entries(CAT_LABELS);
+    const otros=datos.filter(d=>getCategoria(d.Actividad)==='otros').length;
+    return `<div class="stats-grid" style="margin-bottom:18px">
+      ${cats.map(([k,l])=>{
+        const n=datos.filter(d=>getCategoria(d.Actividad)===k).length;
+        const pct=total?Math.round(n/total*100):0;
+        return `<div class="stat-card"><div class="stat-num" style="font-size:22px">${n}</div><div class="stat-label">${l}<br><span style="color:var(--g4);font-size:10px">${pct}%</span></div></div>`;
+      }).join('')}
+      <div class="stat-card"><div class="stat-num" style="font-size:22px">${otros}</div><div class="stat-label">🔹 Otros<br><span style="color:var(--g4);font-size:10px">${total?Math.round(otros/total*100):0}%</span></div></div>
+    </div>`;
+  })()}
+
+  <!-- DISTRIBUCIONES -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px" class="dist-grid">
+    ${barras(datos,'Por calle','🏘️','Calle',null)}
+    ${(()=>{
+      const counts=Object.entries(CAT_LABELS).map(([k,l])=>([l,datos.filter(d=>getCategoria(d.Actividad)===k).length])).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+      const otros=datos.filter(d=>getCategoria(d.Actividad)==='otros').length;
+      if(otros>0) counts.push(['🔹 Otros',otros]);
+      const max=counts[0]?counts[0][1]:1;
+      return `<div class="seccion"><div class="sec-titulo">🏷️ Por categoría</div>
+        ${counts.map(([k,v])=>`<div class="dist-item">
+          <span class="dist-label">${k}</span>
+          <div class="dist-bar-wrap"><div class="dist-bar" style="width:${Math.round(v/max*100)}%"></div></div>
+          <span class="dist-val">${v}</span>
+          <span class="dist-pct">${Math.round(v/total*100)}%</span>
+        </div>`).join('')}
+      </div>`;
+    })()}
+  </div>
+  ${tablaActividades(datos,'Por actividad','🏪','Actividad',normAct)}
+  ${(()=>{
+      const counts=contarPor(datos,'Estado',normEstado);
+      const colores={'Activo':'#16a34a','No Activo':'#dc2626','En obras / Reforma':'#f59e0b'};
+      const total2=datos.length;
+      // Donut SVG — sin canvas, sin espacios muertos
+      const R=60, ri=38, cx=70, cy=70, S=140;
+      let ang=-Math.PI/2;
+      let paths='';
+      counts.forEach(([k,v])=>{
+        if(!v) return;
+        const slice=v/total2*Math.PI*2;
+        const x1=cx+R*Math.cos(ang), y1=cy+R*Math.sin(ang);
+        const ang2=ang+slice;
+        const x2=cx+R*Math.cos(ang2), y2=cy+R*Math.sin(ang2);
+        const xi1=cx+ri*Math.cos(ang), yi1=cy+ri*Math.sin(ang);
+        const xi2=cx+ri*Math.cos(ang2), yi2=cy+ri*Math.sin(ang2);
+        const large=slice>Math.PI?1:0;
+        const col=colores[k]||'#94a3b8';
+        paths+=`<path d="M${xi1},${yi1} L${x1},${y1} A${R},${R} 0 ${large},1 ${x2},${y2} L${xi2},${yi2} A${ri},${ri} 0 ${large},0 ${xi1},${yi1} Z" fill="${col}"/>`;
+        ang+=slice;
+      });
+      const leyenda=counts.map(([k,v])=>{
+        const pct=Math.round(v/total2*100);
+        const col=colores[k]||'#94a3b8';
+        return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="width:12px;height:12px;border-radius:50%;background:${col};flex-shrink:0"></span>
+          <span style="font-size:13px;color:var(--g6);flex:1">${k}</span>
+          <span style="font-size:15px;font-weight:700;color:${col}">${v}</span>
+          <span style="font-size:11px;color:var(--g4);width:34px;text-align:right">${pct}%</span>
+        </div>`;
+      }).join('');
+      return `<div class="seccion" style="padding:16px 20px">
+        <div class="sec-titulo">🥧 Por estado</div>
+        <div style="display:flex;align-items:center;gap:20px">
+          <svg width="${S}" height="${S}" viewBox="0 0 ${S} ${S}" style="flex-shrink:0">
+            ${paths}
+            <circle cx="${cx}" cy="${cy}" r="${ri}" fill="white"/>
+            <text x="${cx}" y="${cy-5}" text-anchor="middle" font-family="Syne,sans-serif" font-weight="800" font-size="18" fill="#0a1628">${total2}</text>
+            <text x="${cx}" y="${cy+13}" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="#94a3b8">total</text>
+          </svg>
+          <div style="flex:1">${leyenda}</div>
+        </div>
+      </div>`;
+    })()}
+
+  <!-- TABLA COMPLETA -->
+  <div class="seccion">
+    <div class="sec-titulo">📋 Listado completo</div>
+    <div class="tabla-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Calle</th>
+            <th>Nº</th>
+            <th>Actividad</th>
+            <th>Categoría</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${datos.map((d,i)=>`<tr>
+            <td style="color:var(--g4)">${i+1}</td>
+            <td style="font-weight:700;color:var(--b4)">#${d.Codigo}</td>
+            <td style="font-weight:600">${d.Nombre||'<span style="color:var(--g4);font-style:italic">Sin nombre</span>'}</td>
+            <td>${d.Calle||'—'}</td>
+            <td>${d['Número']||'—'}</td>
+            <td>${normAct(d.Actividad)}</td>
+            <td style="font-size:11px;color:var(--g6)">${getCategoriaLabel(d.Actividad)}</td>
+            <td>${badgeEstado(d.Estado)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+
+  document.getElementById('contenido').innerHTML=html;
+
+  // Responsive: en móvil la grid de distribuciones va en columna
+  if(window.innerWidth<700){
+    const g=document.querySelector('.dist-grid');
+    if(g) g.style.gridTemplateColumns='1fr';
+  }
+}
+
+/* ── EXPORTAR EXCEL ── */
+function exportarExcel(){
+  if(!allData.length) return;
+
+  const wb=XLSX.utils.book_new();
+  const fecha=new Date().toLocaleDateString('es-ES');
+  const total=allData.length;
+  const conFoto=allData.filter(d=>d['Foto-URL']).length;
+  const activos=allData.filter(d=>normEstado(d.Estado)==='Activo').length;
+  const sinNombre=allData.filter(d=>!d.Nombre||!d.Nombre.trim()||d.Nombre.trim()==='-'||d.Nombre.trim()==='–').length;
+  const sinCoords=allData.filter(d=>!d.Coordenadas||!d.Coordenadas.trim()).length;
+
+  /* ── Hoja 1: Listado completo ── */
+  const rows=[['Código','Nombre','Calle','Número','Actividad','Categoría','Estado','Tiene Foto','Tiene Coords','Foto URL']];
+  allData.forEach(d=>rows.push([
+    d.Codigo,
+    d.Nombre||'',
+    d.Calle||'',
+    d['Número']||'',
+    normAct(d.Actividad),
+    getCategoriaLabel(d.Actividad),
+    d.Estado||'',
+    d['Foto-URL']?'Sí':'No',
+    d.Coordenadas?'Sí':'No',
+    d['Foto-URL']||''
+  ]));
+  const ws1=XLSX.utils.aoa_to_sheet(rows);
+  ws1['!cols']=[{wch:8},{wch:30},{wch:20},{wch:6},{wch:22},{wch:20},{wch:14},{wch:10},{wch:12},{wch:50}];
+  XLSX.utils.book_append_sheet(wb,ws1,'Establecimientos');
+
+  /* ── Hoja por categoría ── */
+  const wsCat=XLSX.utils.aoa_to_sheet([
+    ['DISTRIBUCIÓN POR CATEGORÍA'],[''],
+    ['Categoría','Cantidad','% del total'],
+    ...Object.entries(CAT_LABELS).map(([k,l])=>{
+      const n=allData.filter(d=>getCategoria(d.Actividad)===k).length;
+      return [l,n,+(n/total*100).toFixed(1)];
+    }),
+    ['🔹 Otros',allData.filter(d=>getCategoria(d.Actividad)==='otros').length,
+      +(allData.filter(d=>getCategoria(d.Actividad)==='otros').length/total*100).toFixed(1)],
+    [''],['TOTAL',total,'100%'],
+  ]);
+  wsCat['!cols']=[{wch:28},{wch:12},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,wsCat,'Por Categoría');
+
+  /* ── Hoja 2: Resumen estadístico ── */
+  const resumen=[
+    ['INFORME ISLAPOINT — '+fecha],[''],
+    ['RESUMEN GENERAL'],
+    ['Total establecimientos',total],
+    ['Activos',activos],
+    ['Con foto',conFoto],
+    ['Sin foto',total-conFoto],
+    ['Sin nombre',sinNombre],
+    ['Sin coordenadas',sinCoords],
+    [''],
+    ['DISTRIBUCIÓN POR CALLE'],
+    ['Calle','Cantidad','%'],
+    ...contarPor(allData,'Calle',null).map(([k,v])=>[k,v,+(v/total*100).toFixed(1)]),
+    [''],
+    ['DISTRIBUCIÓN POR CATEGORÍA'],
+    ['Categoría','Cantidad','%'],
+    ...Object.entries(CAT_LABELS).map(([k,l])=>{const n=allData.filter(d=>getCategoria(d.Actividad)===k).length;return[l,n,+(n/total*100).toFixed(1)];}),
+    ['🔹 Otros',allData.filter(d=>getCategoria(d.Actividad)==='otros').length,+(allData.filter(d=>getCategoria(d.Actividad)==='otros').length/total*100).toFixed(1)],
+    [''],
+    ['DISTRIBUCIÓN POR ACTIVIDAD (detalle)'],
+    ['Actividad','Cantidad','%'],
+    ...contarPor(allData,'Actividad',normAct).map(([k,v])=>[k,v,+(v/total*100).toFixed(1)]),
+    [''],
+    ['DISTRIBUCIÓN POR ESTADO'],
+    ['Estado','Cantidad','%'],
+    ...contarPor(allData,'Estado',normEstado).map(([k,v])=>[k,v,+(v/total*100).toFixed(1)]),
+  ];
+  const ws2=XLSX.utils.aoa_to_sheet(resumen);
+  ws2['!cols']=[{wch:30},{wch:12},{wch:8}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Resumen');
+
+  /* ── Hoja 3: Pendientes (sin foto o sin nombre) ── */
+  const pendientes=allData.filter(d=>!d['Foto-URL']||!d.Nombre||!d.Nombre.trim());
+  const rowsPend=[['Código','Nombre','Calle','Número','Actividad','Falta Foto','Falta Nombre']];
+  pendientes.forEach(d=>rowsPend.push([
+    d.Codigo,
+    d.Nombre||'(sin nombre)',
+    d.Calle||'',
+    d['Número']||'',
+    normAct(d.Actividad),
+    d['Foto-URL']?'No':'Sí',
+    (!d.Nombre||!d.Nombre.trim())?'Sí':'No'
+  ]));
+  const ws3=XLSX.utils.aoa_to_sheet(rowsPend);
+  ws3['!cols']=[{wch:8},{wch:30},{wch:20},{wch:6},{wch:22},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws3,'Pendientes');
+
+  XLSX.writeFile(wb,`IslaPoint_Informe_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+/* ── EXPORTAR PDF ── */
+function exportarPDF(){
+  window.print();
+}
+</script>
+</body>
+</html>
