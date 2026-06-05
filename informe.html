@@ -397,25 +397,26 @@ function normalizarCounts(counts){
   return Object.entries(merged).sort((a,b)=>b[1]-a[1]);
 }
 
-// Barras horizontales estéticas (para calles)
+// Barras horizontales estéticas (para calles) — sin "Sin datos"
 function barras(datos,titulo,icono,campo,normFn){
-  const counts=normalizarCounts(contarPor(datos,campo,normFn));
-  const total=datos.length;
+  const counts=normalizarCounts(contarPor(datos,campo,normFn))
+    .filter(([k])=>k!=='Sin datos');
+  const total=counts.reduce((s,[,v])=>s+v,0);
   const max=counts[0]?counts[0][1]:1;
   return `<div class="seccion" style="padding:16px 20px">
     <div class="sec-titulo">${icono} ${titulo}</div>
-    <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
     ${counts.map(([k,v])=>{
       const pct=Math.round(v/total*100);
       const w=Math.round(v/max*100);
-      return `<div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:12px;color:var(--g6);width:120px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${k}</span>
-        <div style="flex:1;height:22px;background:var(--g1);border-radius:6px;overflow:hidden">
-          <div style="height:100%;width:${w}%;background:linear-gradient(90deg,var(--b4),var(--ac));border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;min-width:28px">
-            <span style="font-size:11px;font-weight:700;color:#fff">${v}</span>
+      return `<div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:13px;color:var(--g6);width:110px;flex-shrink:0">${k}</span>
+        <div style="flex:1;height:26px;background:var(--g1);border-radius:8px;overflow:hidden">
+          <div style="height:100%;width:${w}%;background:linear-gradient(90deg,var(--b4),var(--ac));border-radius:8px;display:flex;align-items:center;justify-content:flex-end;padding-right:10px;min-width:36px;transition:width .4s ease">
+            <span style="font-size:12px;font-weight:700;color:#fff">${v}</span>
           </div>
         </div>
-        <span style="font-size:11px;color:var(--g4);width:32px;text-align:right;flex-shrink:0">${pct}%</span>
+        <span style="font-size:12px;color:var(--g4);width:34px;text-align:right;flex-shrink:0">${pct}%</span>
       </div>`;
     }).join('')}
     </div>
